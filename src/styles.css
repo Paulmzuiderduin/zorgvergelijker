@@ -409,6 +409,7 @@ button {
     rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(18, 50, 71, 0.08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  container-type: inline-size;
 }
 
 .zorggroep-card-paired {
@@ -458,6 +459,7 @@ button {
 .field span {
   font-size: 0.95rem;
   font-weight: 700;
+  line-height: 1.25;
 }
 
 .field small {
@@ -662,6 +664,12 @@ button {
 
 .breakdown-grid {
   margin-top: 0.9rem;
+}
+
+@container (max-width: 560px) {
+  .field-grid-paired {
+    grid-template-columns: 1fr;
+  }
 }
 
 @container (max-width: 520px) {
