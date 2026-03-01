@@ -238,6 +238,93 @@ const zorgVelden = [
   { key: 'overigOnderEigenRisico', label: 'Overige zorg onder eigen risico', hint: 'Bijvoorbeeld ziekenhuis, specialist of andere basiszorg', step: '0.01' }
 ];
 
+const zorgGroepen = [
+  {
+    id: 'tandarts',
+    title: 'Tandarts en mondzorg',
+    description: 'Voer hier je verwachte tandartskosten voor een jaar in.',
+    veldKeys: ['tandarts']
+  },
+  {
+    id: 'fysio',
+    title: 'Fysiotherapie en beweegzorg',
+    description: 'Aantal behandelingen en gemiddelde prijs horen hier samen.',
+    veldKeys: ['fysioSessies', 'fysioKostenPerSessie']
+  },
+  {
+    id: 'bril',
+    title: 'Brillen en lenzen',
+    description: 'Gebruik dit als totaalbedrag voor bril, glazen of lenzen.',
+    veldKeys: ['bril']
+  },
+  {
+    id: 'alternatief',
+    title: 'Alternatieve zorg',
+    description: 'Aantal behandelingen en prijs per behandeling vormen samen je jaarinschatting.',
+    veldKeys: ['alternatiefSessies', 'alternatiefKostenPerSessie']
+  },
+  {
+    id: 'hulpmiddelen',
+    title: 'Hulpmiddelen',
+    description: 'Bijvoorbeeld steunzolen, braces of andere hulpmiddelen.',
+    veldKeys: ['hulpmiddelen']
+  },
+  {
+    id: 'medicijnen',
+    title: 'Medicijnen',
+    description: 'Kosten die je verwacht zelf te betalen.',
+    veldKeys: ['medicijnen']
+  },
+  {
+    id: 'psychologische-zorg',
+    title: 'Psychologische zorg',
+    description: 'Neem dit mee als je verwacht zelf kosten te maken.',
+    veldKeys: ['psychologischeZorg']
+  },
+  {
+    id: 'gehoor',
+    title: 'Gehoor en oren',
+    description: 'Bijvoorbeeld audicien, batterijen of eigen kosten voor gehoorapparaat.',
+    veldKeys: ['gehoor']
+  },
+  {
+    id: 'huid',
+    title: 'Huidzorg en acne',
+    description: 'Bijvoorbeeld huidtherapie, camouflage of acnebehandeling.',
+    veldKeys: ['huid']
+  },
+  {
+    id: 'kraamzorg',
+    title: 'Zwangerschap en kraamzorg',
+    description: 'Bijvoorbeeld eigen bijdragen of aanvullende zorg rondom zwangerschap.',
+    veldKeys: ['kraamzorg']
+  },
+  {
+    id: 'preventie',
+    title: 'Preventie en cursussen',
+    description: 'Bijvoorbeeld leefstijlprogramma’s, cursussen of preventieve checks.',
+    veldKeys: ['preventie']
+  },
+  {
+    id: 'buitenland',
+    title: 'Buitenland en vaccinaties',
+    description: 'Bijvoorbeeld reisvaccinaties of zorgkosten in het buitenland.',
+    veldKeys: ['buitenland']
+  },
+  {
+    id: 'dieet',
+    title: 'Diëtist en voedingsadvies',
+    description: 'Gebruik dit voor dieetadvies of voedingsbegeleiding.',
+    veldKeys: ['dieet']
+  },
+  {
+    id: 'overig',
+    title: 'Overige zorg onder eigen risico',
+    description: 'Bijvoorbeeld ziekenhuis, specialist of andere basiszorg.',
+    veldKeys: ['overigOnderEigenRisico']
+  }
+];
+
 const polisVelden = [
   { key: 'maandpremie', label: 'Maandpremie', kind: 'currency' },
   { key: 'eigenRisico', label: 'Eigen risico', kind: 'currency' },
@@ -527,6 +614,16 @@ export default function App() {
       (categorie) => actieveCategorieSet.has(categorie.id) && categorie.zorgKeys.includes(veld.key)
     )
   );
+
+  const zichtbareZorgGroepen = zorgGroepen
+    .filter((groep) => actieveCategorieSet.has(groep.id))
+    .map((groep) => ({
+      ...groep,
+      velden: groep.veldKeys
+        .map((veldKey) => zichtbareZorgVelden.find((veld) => veld.key === veldKey))
+        .filter(Boolean)
+    }))
+    .filter((groep) => groep.velden.length > 0);
 
   const zichtbarePolisVelden = polisVelden.filter((veld) => {
     if (veld.key === 'maandpremie') return true;
@@ -826,19 +923,32 @@ export default function App() {
             <p>Vul eerst in wat je komend jaar denkt te gebruiken. De vergelijking rechts rekent direct mee met de categorieën die je in instellingen hebt aangezet.</p>
           </div>
           <article className="panel">
-            <div className="field-grid">
-              {zichtbareZorgVelden.map((veld) => (
-                <label key={veld.key} className={veld.key === 'overigOnderEigenRisico' ? 'field wide' : 'field'}>
-                  <span>{veld.label}</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step={veld.step}
-                    value={zorggebruik[veld.key]}
-                    onChange={(event) => updateZorggebruik(veld.key, event.target.value)}
-                  />
-                  <small>{veld.hint}</small>
-                </label>
+            <div className="zorggroepen-stack">
+              {zichtbareZorgGroepen.map((groep) => (
+                <section
+                  key={groep.id}
+                  className={`zorggroep-card ${groep.velden.length > 1 ? 'zorggroep-card-paired' : ''}`}
+                >
+                  <div className="zorggroep-header">
+                    <h3>{groep.title}</h3>
+                    <p>{groep.description}</p>
+                  </div>
+                  <div className={`field-grid ${groep.velden.length > 1 ? 'field-grid-paired' : ''}`}>
+                    {groep.velden.map((veld) => (
+                      <label key={veld.key} className="field">
+                        <span>{veld.label}</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step={veld.step}
+                          value={zorggebruik[veld.key]}
+                          onChange={(event) => updateZorggebruik(veld.key, event.target.value)}
+                        />
+                        <small>{veld.hint}</small>
+                      </label>
+                    ))}
+                  </div>
+                </section>
               ))}
             </div>
           </article>
