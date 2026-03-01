@@ -32,6 +32,11 @@ const createInsurance = (id, naam) => ({
   hulpmiddelenVergoeding: 0,
   medicijnenVergoeding: 0,
   psychologischeZorgVergoeding: 0,
+  gehoorVergoeding: 0,
+  huidVergoeding: 0,
+  kraamzorgVergoeding: 0,
+  preventieVergoeding: 0,
+  buitenlandVergoeding: 0,
   dieetVergoeding: 0,
   notitie: ''
 });
@@ -47,6 +52,11 @@ const defaultState = {
     hulpmiddelen: 0,
     medicijnen: 0,
     psychologischeZorg: 0,
+    gehoor: 0,
+    huid: 0,
+    kraamzorg: 0,
+    preventie: 0,
+    buitenland: 0,
     dieet: 0,
     overigOnderEigenRisico: 0
   },
@@ -58,6 +68,7 @@ const defaultState = {
     'hulpmiddelen',
     'medicijnen',
     'psychologische-zorg',
+    'gehoor',
     'dieet',
     'overig'
   ],
@@ -72,7 +83,8 @@ const defaultState = {
       alternatiefPerSessie: 40,
       brilVergoeding: 100,
       hulpmiddelenVergoeding: 150,
-      medicijnenVergoeding: 80
+      medicijnenVergoeding: 80,
+      gehoorVergoeding: 75
     }
   ]
 };
@@ -80,70 +92,115 @@ const defaultState = {
 const categorieen = [
   {
     id: 'tandarts',
-    groep: 'vgz',
+    groep: 'veelgekozen',
     label: 'Tandarts en mondzorg',
-    beschrijving: 'VGZ meest gezocht: tandartskosten en tandartsvergoeding',
+    beschrijving: 'Tandartskosten en tandartsvergoeding',
     zorgKeys: ['tandarts'],
     polisKeys: ['tandartsVergoeding'],
     breakdownKey: 'tandarts'
   },
   {
     id: 'fysio',
-    groep: 'vgz',
+    groep: 'veelgekozen',
     label: 'Fysiotherapie en beweegzorg',
-    beschrijving: 'VGZ meest gezocht: sessies, prijs per sessie en aantal vergoede behandelingen',
+    beschrijving: 'Sessies, prijs per sessie en aantal vergoede behandelingen',
     zorgKeys: ['fysioSessies', 'fysioKostenPerSessie'],
     polisKeys: ['fysioSessiesVergoed'],
     breakdownKey: 'fysio'
   },
   {
     id: 'bril',
-    groep: 'vgz',
+    groep: 'veelgekozen',
     label: 'Brillen en lenzen',
-    beschrijving: 'VGZ meest gezocht: brillen- en lenzenkosten plus vergoeding',
+    beschrijving: 'Brillen- en lenzenkosten plus vergoeding',
     zorgKeys: ['bril'],
     polisKeys: ['brilVergoeding'],
     breakdownKey: 'bril'
   },
   {
     id: 'alternatief',
-    groep: 'vgz',
+    groep: 'veelgekozen',
     label: 'Alternatieve zorg',
-    beschrijving: 'VGZ meest gezocht: behandelingen, prijs per behandeling en maxima',
+    beschrijving: 'Behandelingen, prijs per behandeling en maxima',
     zorgKeys: ['alternatiefSessies', 'alternatiefKostenPerSessie'],
     polisKeys: ['alternatiefMaxVergoeding', 'alternatiefPerSessie'],
     breakdownKey: 'alternatief'
   },
   {
     id: 'hulpmiddelen',
-    groep: 'vgz',
+    groep: 'veelgekozen',
     label: 'Hulpmiddelen',
-    beschrijving: 'VGZ meest gezocht: hulpmiddelenkosten en vergoeding',
+    beschrijving: 'Hulpmiddelenkosten en vergoeding',
     zorgKeys: ['hulpmiddelen'],
     polisKeys: ['hulpmiddelenVergoeding'],
     breakdownKey: 'hulpmiddelen'
   },
   {
     id: 'medicijnen',
-    groep: 'vgz',
+    groep: 'veelgekozen',
     label: 'Medicijnen',
-    beschrijving: 'VGZ meest gezocht: medicijnkosten en vergoeding',
+    beschrijving: 'Medicijnkosten en vergoeding',
     zorgKeys: ['medicijnen'],
     polisKeys: ['medicijnenVergoeding'],
     breakdownKey: 'medicijnen'
   },
   {
     id: 'psychologische-zorg',
-    groep: 'vgz',
+    groep: 'veelgekozen',
     label: 'Psychologische zorg',
-    beschrijving: 'VGZ meest gezocht: psychologische zorg en vergoeding',
+    beschrijving: 'Psychologische zorg en vergoeding',
     zorgKeys: ['psychologischeZorg'],
     polisKeys: ['psychologischeZorgVergoeding'],
     breakdownKey: 'psychologischeZorg'
   },
   {
+    id: 'gehoor',
+    groep: 'meeropties',
+    label: 'Gehoor en oren',
+    beschrijving: 'Bijvoorbeeld gehoorapparaten, batterijen of audicienkosten',
+    zorgKeys: ['gehoor'],
+    polisKeys: ['gehoorVergoeding'],
+    breakdownKey: 'gehoor'
+  },
+  {
+    id: 'huid',
+    groep: 'meeropties',
+    label: 'Huidzorg en acne',
+    beschrijving: 'Bijvoorbeeld huidtherapie, camouflage of acnebehandeling',
+    zorgKeys: ['huid'],
+    polisKeys: ['huidVergoeding'],
+    breakdownKey: 'huid'
+  },
+  {
+    id: 'kraamzorg',
+    groep: 'meeropties',
+    label: 'Zwangerschap en kraamzorg',
+    beschrijving: 'Bijvoorbeeld eigen bijdragen of aanvullende vergoedingen rond zwangerschap',
+    zorgKeys: ['kraamzorg'],
+    polisKeys: ['kraamzorgVergoeding'],
+    breakdownKey: 'kraamzorg'
+  },
+  {
+    id: 'preventie',
+    groep: 'meeropties',
+    label: 'Preventie en cursussen',
+    beschrijving: 'Bijvoorbeeld stoppen-met-roken, cursussen of checks',
+    zorgKeys: ['preventie'],
+    polisKeys: ['preventieVergoeding'],
+    breakdownKey: 'preventie'
+  },
+  {
+    id: 'buitenland',
+    groep: 'meeropties',
+    label: 'Buitenland en vaccinaties',
+    beschrijving: 'Bijvoorbeeld reisvaccinaties of zorgkosten rond verblijf in het buitenland',
+    zorgKeys: ['buitenland'],
+    polisKeys: ['buitenlandVergoeding'],
+    breakdownKey: 'buitenland'
+  },
+  {
     id: 'dieet',
-    groep: 'extra',
+    groep: 'meeropties',
     label: 'Diëtist en voedingsadvies',
     beschrijving: 'Praktische extra categorie voor dieetadvies en voedingsbegeleiding',
     zorgKeys: ['dieet'],
@@ -172,6 +229,11 @@ const zorgVelden = [
   { key: 'hulpmiddelen', label: 'Hulpmiddelen', hint: 'Bijvoorbeeld steunzolen, braces of andere hulpmiddelen', step: '0.01' },
   { key: 'medicijnen', label: 'Medicijnen', hint: 'Kosten die je verwacht zelf te betalen', step: '0.01' },
   { key: 'psychologischeZorg', label: 'Psychologische zorg', hint: 'Alleen meenemen als je zelf kosten verwacht', step: '0.01' },
+  { key: 'gehoor', label: 'Gehoor en oren', hint: 'Bijvoorbeeld audicien, batterijen of eigen kosten voor gehoorapparaat', step: '0.01' },
+  { key: 'huid', label: 'Huidzorg en acne', hint: 'Bijvoorbeeld huidtherapie, camouflage of acnebehandeling', step: '0.01' },
+  { key: 'kraamzorg', label: 'Zwangerschap en kraamzorg', hint: 'Bijvoorbeeld eigen bijdragen of aanvullende zorg rondom zwangerschap', step: '0.01' },
+  { key: 'preventie', label: 'Preventie en cursussen', hint: 'Bijvoorbeeld leefstijlprogramma’s, cursussen of preventieve checks', step: '0.01' },
+  { key: 'buitenland', label: 'Buitenland en vaccinaties', hint: 'Bijvoorbeeld reisvaccinaties of zorgkosten in het buitenland', step: '0.01' },
   { key: 'dieet', label: 'Diëtist of voedingsadvies', hint: 'Jaarbedrag dat je verwacht zelf te betalen', step: '0.01' },
   { key: 'overigOnderEigenRisico', label: 'Overige zorg onder eigen risico', hint: 'Bijvoorbeeld ziekenhuis, specialist of andere basiszorg', step: '0.01' }
 ];
@@ -187,6 +249,11 @@ const polisVelden = [
   { key: 'hulpmiddelenVergoeding', label: 'Hulpmiddelenvergoeding per jaar', kind: 'currency' },
   { key: 'medicijnenVergoeding', label: 'Medicijnenvergoeding per jaar', kind: 'currency' },
   { key: 'psychologischeZorgVergoeding', label: 'Psychologische zorg per jaar', kind: 'currency' },
+  { key: 'gehoorVergoeding', label: 'Gehoor en oren per jaar', kind: 'currency' },
+  { key: 'huidVergoeding', label: 'Huidzorg en acne per jaar', kind: 'currency' },
+  { key: 'kraamzorgVergoeding', label: 'Zwangerschap en kraamzorg per jaar', kind: 'currency' },
+  { key: 'preventieVergoeding', label: 'Preventie en cursussen per jaar', kind: 'currency' },
+  { key: 'buitenlandVergoeding', label: 'Buitenland en vaccinaties per jaar', kind: 'currency' },
   { key: 'dieetVergoeding', label: 'Diëtistvergoeding per jaar', kind: 'currency' }
 ];
 
@@ -260,6 +327,21 @@ const berekenKosten = (verzekering, zorggebruik, actieveCategorieen) => {
   const psychologischeZorgEigen = actief.has('psychologische-zorg')
     ? Math.max(0, zorggebruik.psychologischeZorg - verzekering.psychologischeZorgVergoeding)
     : 0;
+  const gehoorEigen = actief.has('gehoor')
+    ? Math.max(0, zorggebruik.gehoor - verzekering.gehoorVergoeding)
+    : 0;
+  const huidEigen = actief.has('huid')
+    ? Math.max(0, zorggebruik.huid - verzekering.huidVergoeding)
+    : 0;
+  const kraamzorgEigen = actief.has('kraamzorg')
+    ? Math.max(0, zorggebruik.kraamzorg - verzekering.kraamzorgVergoeding)
+    : 0;
+  const preventieEigen = actief.has('preventie')
+    ? Math.max(0, zorggebruik.preventie - verzekering.preventieVergoeding)
+    : 0;
+  const buitenlandEigen = actief.has('buitenland')
+    ? Math.max(0, zorggebruik.buitenland - verzekering.buitenlandVergoeding)
+    : 0;
   const dieetEigen = actief.has('dieet') ? Math.max(0, zorggebruik.dieet - verzekering.dieetVergoeding) : 0;
   const eigenRisicoGebruikt = actief.has('overig')
     ? Math.min(zorggebruik.overigOnderEigenRisico, verzekering.eigenRisico)
@@ -273,6 +355,11 @@ const berekenKosten = (verzekering, zorggebruik, actieveCategorieen) => {
     hulpmiddelenEigen +
     medicijnenEigen +
     psychologischeZorgEigen +
+    gehoorEigen +
+    huidEigen +
+    kraamzorgEigen +
+    preventieEigen +
+    buitenlandEigen +
     dieetEigen;
   const totaal = jaarPremie + eigenKostenAanvullend + eigenRisicoGebruikt;
 
@@ -289,6 +376,11 @@ const berekenKosten = (verzekering, zorggebruik, actieveCategorieen) => {
       hulpmiddelen: hulpmiddelenEigen,
       medicijnen: medicijnenEigen,
       psychologischeZorg: psychologischeZorgEigen,
+      gehoor: gehoorEigen,
+      huid: huidEigen,
+      kraamzorg: kraamzorgEigen,
+      preventie: preventieEigen,
+      buitenland: buitenlandEigen,
       dieet: dieetEigen
     }
   };
@@ -316,6 +408,11 @@ const renderPrintHtml = ({ zorggebruik, resultaten, goedkoopste, actieveCategori
     ['Hulpmiddelen', actief.has('hulpmiddelen') ? zorggebruik.hulpmiddelen : 0],
     ['Medicijnen', actief.has('medicijnen') ? zorggebruik.medicijnen : 0],
     ['Psychologische zorg', actief.has('psychologische-zorg') ? zorggebruik.psychologischeZorg : 0],
+    ['Gehoor en oren', actief.has('gehoor') ? zorggebruik.gehoor : 0],
+    ['Huidzorg en acne', actief.has('huid') ? zorggebruik.huid : 0],
+    ['Zwangerschap en kraamzorg', actief.has('kraamzorg') ? zorggebruik.kraamzorg : 0],
+    ['Preventie en cursussen', actief.has('preventie') ? zorggebruik.preventie : 0],
+    ['Buitenland en vaccinaties', actief.has('buitenland') ? zorggebruik.buitenland : 0],
     ['Diëtist', actief.has('dieet') ? zorggebruik.dieet : 0],
     ['Overige zorg onder eigen risico', actief.has('overig') ? zorggebruik.overigOnderEigenRisico : 0]
   ]
@@ -656,14 +753,14 @@ export default function App() {
               <p className="section-kicker">Instellingen</p>
               <h2>Kies welke zorgkosten je wilt meenemen</h2>
             </div>
-            <p>Gebaseerd op de meest gezochte vergoedingen van VGZ. Wat je hier uitzet, verdwijnt uit de invoer, uit de polisvelden en uit de berekening.</p>
+            <p>Wat je hier uitzet, verdwijnt uit de invoer, uit de polisvelden en uit de berekening. Zet extra categorieën aan als je specifieker wilt vergelijken.</p>
           </div>
           <div className="settings-groups">
             <div>
-              <p className="settings-group-label">VGZ meest gezocht</p>
+              <p className="settings-group-label">Veelgekozen kosten</p>
               <div className="settings-grid">
                 {categorieen
-                  .filter((categorie) => categorie.groep === 'vgz')
+                  .filter((categorie) => categorie.groep === 'veelgekozen')
                   .map((categorie) => (
                     <label key={categorie.id} className="toggle-card">
                       <input
@@ -680,10 +777,10 @@ export default function App() {
               </div>
             </div>
             <div>
-              <p className="settings-group-label">Praktische extra's</p>
+              <p className="settings-group-label">Meer opties</p>
               <div className="settings-grid">
                 {categorieen
-                  .filter((categorie) => categorie.groep === 'extra')
+                  .filter((categorie) => categorie.groep === 'meeropties' || categorie.groep === 'extra')
                   .map((categorie) => (
                     <label key={categorie.id} className="toggle-card">
                       <input
@@ -707,7 +804,7 @@ export default function App() {
         <a href="#step-zorggebruik" className="workflow-card">
           <span className="section-kicker">Stap 1</span>
           <strong>Vul je zorggebruik in</strong>
-          <p>Begin met je inschatting van zorgkosten uit de gekozen VGZ-categorieën en eventuele extra's.</p>
+          <p>Begin met je inschatting van zorgkosten uit de categorieën die je hierboven aanzet.</p>
         </a>
         <a href="#step-polissen" className="workflow-card">
           <span className="section-kicker">Stap 2</span>
@@ -726,7 +823,7 @@ export default function App() {
           <div className="step-intro">
             <p className="section-kicker">Stap 1</p>
             <h2>Verwacht zorggebruik</h2>
-            <p>Vul eerst in wat je komend jaar denkt te gebruiken. De vergelijking rechts rekent direct mee met de categorieën die je in instellingen aan hebt gezet.</p>
+            <p>Vul eerst in wat je komend jaar denkt te gebruiken. De vergelijking rechts rekent direct mee met de categorieën die je in instellingen hebt aangezet.</p>
           </div>
           <article className="panel">
             <div className="field-grid">
@@ -760,11 +857,14 @@ export default function App() {
             </button>
           </div>
           <section className="insurance-stack">
-            {verzekeringen.map((verzekering) => (
+            {verzekeringen.map((verzekering, index) => (
               <article key={verzekering.id} className="insurance-card">
                 <div className="insurance-header">
                   <label className="field grow">
-                    <span>Naam van de polis</span>
+                    <span className="polis-label-row">
+                      <span>Naam van de polis</span>
+                      <span className="polis-badge">Polis {index + 1}</span>
+                    </span>
                     <input
                       type="text"
                       value={verzekering.naam}
