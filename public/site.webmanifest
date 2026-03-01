@@ -1,0 +1,16 @@
+{
+  "name": "Zorgvergelijker",
+  "short_name": "Zorgvergelijker",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f3ec",
+  "theme_color": "#0f766e",
+  "description": "Vergelijk je zorgverzekering op basis van je verwachte jaarlasten.",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
