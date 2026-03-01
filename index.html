@@ -58,6 +58,205 @@
         }
       }
     </script>
+    <script>
+      (function () {
+        var CONSENT_KEY = 'pz_analytics_consent_v1';
+        var MEASUREMENT_ID = 'G-KGLTSPFH64';
+
+        function configureAnalytics() {
+          if (window.__gaConfigured || !window.gtag) return;
+          window.__gaConfigured = true;
+          gtag('js', new Date());
+          gtag('config', MEASUREMENT_ID, { anonymize_ip: true });
+        }
+
+        function loadAnalytics() {
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+
+          if (window.__gaLoaded) {
+            configureAnalytics();
+            return;
+          }
+
+          window.__gaLoaded = true;
+
+          var existingScript = document.querySelector('script[data-ga-measurement-id="' + MEASUREMENT_ID + '"]');
+          if (existingScript) {
+            if (window.__gaScriptReady) {
+              configureAnalytics();
+            } else {
+              existingScript.addEventListener('load', function () {
+                window.__gaScriptReady = true;
+                configureAnalytics();
+              }, { once: true });
+            }
+            return;
+          }
+
+          var script = document.createElement('script');
+          script.async = true;
+          script.src = 'https://www.googletagmanager.com/gtag/js?id=' + MEASUREMENT_ID;
+          script.dataset.gaMeasurementId = MEASUREMENT_ID;
+          script.onload = function () {
+            window.__gaScriptReady = true;
+            configureAnalytics();
+          };
+          script.onerror = function () {
+            window.__gaLoaded = false;
+            window.__gaConfigured = false;
+          };
+          document.head.appendChild(script);
+        }
+
+        function saveConsent(value) {
+          try {
+            localStorage.setItem(CONSENT_KEY, value);
+          } catch (error) {
+            // Ignore storage errors and continue without persistence.
+          }
+        }
+
+        function readConsent() {
+          try {
+            return localStorage.getItem(CONSENT_KEY);
+          } catch (error) {
+            return null;
+          }
+        }
+
+        function removeBanner() {
+          var banner = document.getElementById('consent-banner');
+          if (banner) banner.remove();
+        }
+
+        function createBanner() {
+          if (document.getElementById('consent-banner')) return;
+
+          var overlay = document.createElement('div');
+          overlay.id = 'consent-banner';
+          overlay.style.cssText = [
+            'position:fixed',
+            'inset:0',
+            'z-index:9999',
+            'display:flex',
+            'align-items:center',
+            'justify-content:center',
+            'padding:24px',
+            'background:rgba(15,23,42,0.42)'
+          ].join(';');
+
+          var banner = document.createElement('div');
+          banner.setAttribute('role', 'dialog');
+          banner.setAttribute('aria-live', 'polite');
+          banner.style.cssText = [
+            'width:min(100%,540px)',
+            'padding:22px',
+            'border-radius:20px',
+            'border:1px solid rgba(15,23,42,0.18)',
+            'background:#ffffff',
+            'box-shadow:0 30px 80px -28px rgba(2,6,23,0.75)',
+            'display:grid',
+            'gap:16px',
+            'font:500 14px/1.5 system-ui, sans-serif',
+            'color:#0f172a'
+          ].join(';');
+
+          var heading = document.createElement('div');
+          heading.style.cssText = 'font:800 18px/1.2 system-ui, sans-serif;color:#0f172a;';
+          heading.textContent = 'Analyticsvoorkeuren';
+
+          var text = document.createElement('div');
+          text.textContent =
+            'Sta privacyvriendelijke analytics toe zodat ik kan zien hoe Zorgvergelijker wordt gebruikt en de app kan verbeteren. Google Analytics 4 laadt pas na jouw toestemming.';
+
+          var note = document.createElement('div');
+          note.style.cssText =
+            'font:500 12px/1.5 system-ui, sans-serif;color:#475569;background:#f8fafc;border:1px solid rgba(148,163,184,0.24);border-radius:12px;padding:10px 12px;';
+          note.textContent =
+            'Je kunt de site gewoon gebruiken als je weigert. Je kunt deze keuze later altijd opnieuw instellen.';
+
+          var actions = document.createElement('div');
+          actions.style.cssText = 'display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;';
+
+          var reject = document.createElement('button');
+          reject.type = 'button';
+          reject.textContent = 'Weigeren';
+          reject.style.cssText =
+            'border:1px solid rgba(15,23,42,0.18);background:#fff;color:#0f172a;border-radius:999px;padding:12px 14px;font:700 13px system-ui, sans-serif;cursor:pointer;';
+          reject.onclick = function () {
+            saveConsent('denied');
+            removeBanner();
+          };
+
+          var accept = document.createElement('button');
+          accept.type = 'button';
+          accept.textContent = 'Accepteren';
+          accept.style.cssText =
+            'border:1px solid transparent;background:#0f766e;color:#fff;border-radius:999px;padding:12px 14px;font:700 13px system-ui, sans-serif;cursor:pointer;';
+          accept.onclick = function () {
+            saveConsent('granted');
+            loadAnalytics();
+            removeBanner();
+          };
+
+          actions.appendChild(reject);
+          actions.appendChild(accept);
+          banner.appendChild(heading);
+          banner.appendChild(text);
+          banner.appendChild(note);
+          banner.appendChild(actions);
+          overlay.appendChild(banner);
+          document.body.appendChild(overlay);
+        }
+
+        function resetAnalyticsPreferences() {
+          try {
+            localStorage.removeItem(CONSENT_KEY);
+          } catch (error) {
+            // Ignore storage errors and continue.
+          }
+          removeBanner();
+          createBanner();
+        }
+
+        function ensurePreferencesButton() {
+          if (document.getElementById('analytics-preferences-button')) return;
+          var button = document.createElement('button');
+          button.id = 'analytics-preferences-button';
+          button.type = 'button';
+          button.textContent = 'Analyticsvoorkeuren';
+          button.style.cssText = [
+            'position:fixed',
+            'right:16px',
+            'bottom:16px',
+            'z-index:9998',
+            'padding:9px 12px',
+            'border-radius:999px',
+            'border:1px solid rgba(15,23,42,0.16)',
+            'background:rgba(255,255,255,0.96)',
+            'color:#0f172a',
+            'box-shadow:0 12px 32px -22px rgba(2,6,23,0.55)',
+            'font:700 12px/1.2 system-ui, sans-serif',
+            'cursor:pointer'
+          ].join(';');
+          button.onclick = resetAnalyticsPreferences;
+          document.body.appendChild(button);
+        }
+
+        window.resetAnalyticsPreferences = resetAnalyticsPreferences;
+
+        var consent = readConsent();
+        if (consent === 'granted') {
+          loadAnalytics();
+        }
+
+        window.addEventListener('DOMContentLoaded', function () {
+          ensurePreferencesButton();
+          if (!readConsent()) createBanner();
+        });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
