@@ -208,6 +208,13 @@ button {
   margin-top: 1rem;
 }
 
+.workspace-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
 .workflow-card {
   border-radius: 1.4rem;
   padding: 1.15rem 1.2rem;
@@ -234,6 +241,18 @@ button {
   margin: 0.65rem 0 0;
   color: var(--muted);
   line-height: 1.5;
+}
+
+.workflow-tab {
+  text-align: left;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.workflow-tab.is-active {
+  border-color: rgba(15, 118, 110, 0.32);
+  background: linear-gradient(180deg, rgba(236, 248, 246, 0.96), rgba(255, 255, 255, 0.9));
+  box-shadow: 0 26px 70px -46px rgba(15, 118, 110, 0.42);
 }
 
 .settings-panel {
@@ -317,6 +336,22 @@ button {
   align-items: start;
 }
 
+.tab-shell {
+  display: grid;
+  gap: 1.1rem;
+  margin-top: 1.25rem;
+  padding: 1.2rem;
+  border-radius: 1.9rem;
+  border: 1px solid rgba(18, 50, 71, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.18));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+.tab-panel {
+  display: grid;
+  gap: 1rem;
+}
+
 .panel,
 .insurance-card,
 .result-card {
@@ -351,6 +386,11 @@ button {
   min-height: 15.5rem;
   display: flex;
   flex-direction: column;
+}
+
+.tab-intro {
+  min-height: unset;
+  padding: 0.15rem 0.15rem 0;
 }
 
 .step-intro h2 {
@@ -396,6 +436,12 @@ button {
   gap: 0.95rem;
 }
 
+.zorggroepen-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
 .zorggroepen-stack {
   display: grid;
   gap: 1rem;
@@ -435,12 +481,83 @@ button {
 }
 
 .field-grid-paired {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 0.85rem;
 }
 
 .policy-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.insurance-card-top {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.policy-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.mini-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.75rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(18, 50, 71, 0.12);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--text);
+  font-weight: 700;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.mini-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(15, 118, 110, 0.26);
+}
+
+.policy-collapsed-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.policy-sections {
+  display: grid;
+  gap: 1rem;
+}
+
+.policy-section {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(18, 50, 71, 0.08);
+}
+
+.policy-section-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.policy-section-header p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.policy-note-section {
+  background: rgba(248, 250, 252, 0.78);
 }
 
 .field {
@@ -612,6 +729,13 @@ button {
   box-shadow: 0 32px 80px -40px rgba(15, 118, 110, 0.48);
 }
 
+.results-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.4fr);
+  gap: 1rem;
+  align-items: start;
+}
+
 .result-total {
   font-family: "Fraunces", Georgia, serif;
   font-size: clamp(1.8rem, 3.2vw, 2.6rem);
@@ -652,6 +776,55 @@ button {
   font-weight: 700;
 }
 
+.result-highlights {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.result-rules {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.result-highlights-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  color: var(--brand-dark);
+}
+
+.result-highlights-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.highlight-pill {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 1rem;
+  background: rgba(236, 248, 246, 0.92);
+  border: 1px solid rgba(15, 118, 110, 0.14);
+}
+
+.highlight-pill span {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.highlight-pill strong {
+  font-size: 0.98rem;
+}
+
+.highlight-pill-soft {
+  background: rgba(255, 252, 247, 0.94);
+  border-color: rgba(245, 158, 11, 0.18);
+}
+
 .breakdown {
   margin-top: 0.9rem;
 }
@@ -666,10 +839,30 @@ button {
   margin-top: 0.9rem;
 }
 
-@container (max-width: 560px) {
-  .field-grid-paired {
-    grid-template-columns: 1fr;
-  }
+.policy-note-box {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.9rem;
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid rgba(18, 50, 71, 0.08);
+}
+
+.policy-note-box p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.tab-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.tab-footer > span {
+  min-width: 1px;
 }
 
 @container (max-width: 520px) {
@@ -689,8 +882,11 @@ button {
 
 @media (max-width: 960px) {
   .hero-card,
+  .workspace-tabs,
   .workflow-strip,
   .workspace-grid,
+  .zorggroepen-grid,
+  .results-layout,
   .settings-grid,
   .field-grid-paired,
   .policy-grid,
@@ -702,6 +898,7 @@ button {
   .result-topline,
   .section-header,
   .insurance-header,
+  .policy-actions,
   .step-intro-with-action,
   .settings-header {
     flex-direction: column;
@@ -717,6 +914,19 @@ button {
 
   .step-column {
     padding: 1rem;
+  }
+
+  .tab-shell {
+    padding: 1rem;
+  }
+
+  .tab-footer {
+    flex-direction: column-reverse;
+  }
+
+  .tab-footer .primary-button,
+  .tab-footer .secondary-button {
+    width: 100%;
   }
 }
 
@@ -755,6 +965,12 @@ button {
     width: 100%;
   }
 
+  .workspace-tabs,
+  .results-layout,
+  .zorggroepen-grid {
+    grid-template-columns: 1fr;
+  }
+
   .step-button {
     width: 100%;
   }
@@ -767,7 +983,9 @@ button {
 
   .ambient,
   .hero-actions,
+  .workspace-tabs,
   .workflow-strip,
+  .tab-footer,
   .icon-button {
     display: none !important;
   }

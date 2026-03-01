@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Calculator,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
   Download,
   FileText,
   Plus,
@@ -25,19 +28,30 @@ const createInsurance = (id, naam) => ({
   maandpremie: 154,
   eigenRisico: 385,
   tandartsVergoeding: 0,
+  tandartsPercentage: 0,
   fysioSessiesVergoed: 0,
   brilVergoeding: 0,
+  brilPercentage: 0,
   alternatiefMaxVergoeding: 0,
   alternatiefPerSessie: 0,
   hulpmiddelenVergoeding: 0,
+  hulpmiddelenPercentage: 0,
   medicijnenVergoeding: 0,
+  medicijnenPercentage: 0,
   psychologischeZorgVergoeding: 0,
+  psychologischeZorgPercentage: 0,
   gehoorVergoeding: 0,
+  gehoorPercentage: 0,
   huidVergoeding: 0,
+  huidPercentage: 0,
   kraamzorgVergoeding: 0,
+  kraamzorgPercentage: 0,
   preventieVergoeding: 0,
+  preventiePercentage: 0,
   buitenlandVergoeding: 0,
+  buitenlandPercentage: 0,
   dieetVergoeding: 0,
+  dieetPercentage: 0,
   notitie: ''
 });
 
@@ -96,7 +110,7 @@ const categorieen = [
     label: 'Tandarts en mondzorg',
     beschrijving: 'Tandartskosten en tandartsvergoeding',
     zorgKeys: ['tandarts'],
-    polisKeys: ['tandartsVergoeding'],
+    polisKeys: ['tandartsVergoeding', 'tandartsPercentage'],
     breakdownKey: 'tandarts'
   },
   {
@@ -114,7 +128,7 @@ const categorieen = [
     label: 'Brillen en lenzen',
     beschrijving: 'Brillen- en lenzenkosten plus vergoeding',
     zorgKeys: ['bril'],
-    polisKeys: ['brilVergoeding'],
+    polisKeys: ['brilVergoeding', 'brilPercentage'],
     breakdownKey: 'bril'
   },
   {
@@ -132,7 +146,7 @@ const categorieen = [
     label: 'Hulpmiddelen',
     beschrijving: 'Hulpmiddelenkosten en vergoeding',
     zorgKeys: ['hulpmiddelen'],
-    polisKeys: ['hulpmiddelenVergoeding'],
+    polisKeys: ['hulpmiddelenVergoeding', 'hulpmiddelenPercentage'],
     breakdownKey: 'hulpmiddelen'
   },
   {
@@ -141,7 +155,7 @@ const categorieen = [
     label: 'Medicijnen',
     beschrijving: 'Medicijnkosten en vergoeding',
     zorgKeys: ['medicijnen'],
-    polisKeys: ['medicijnenVergoeding'],
+    polisKeys: ['medicijnenVergoeding', 'medicijnenPercentage'],
     breakdownKey: 'medicijnen'
   },
   {
@@ -150,7 +164,7 @@ const categorieen = [
     label: 'Psychologische zorg',
     beschrijving: 'Psychologische zorg en vergoeding',
     zorgKeys: ['psychologischeZorg'],
-    polisKeys: ['psychologischeZorgVergoeding'],
+    polisKeys: ['psychologischeZorgVergoeding', 'psychologischeZorgPercentage'],
     breakdownKey: 'psychologischeZorg'
   },
   {
@@ -159,7 +173,7 @@ const categorieen = [
     label: 'Gehoor en oren',
     beschrijving: 'Bijvoorbeeld gehoorapparaten, batterijen of audicienkosten',
     zorgKeys: ['gehoor'],
-    polisKeys: ['gehoorVergoeding'],
+    polisKeys: ['gehoorVergoeding', 'gehoorPercentage'],
     breakdownKey: 'gehoor'
   },
   {
@@ -168,7 +182,7 @@ const categorieen = [
     label: 'Huidzorg en acne',
     beschrijving: 'Bijvoorbeeld huidtherapie, camouflage of acnebehandeling',
     zorgKeys: ['huid'],
-    polisKeys: ['huidVergoeding'],
+    polisKeys: ['huidVergoeding', 'huidPercentage'],
     breakdownKey: 'huid'
   },
   {
@@ -177,7 +191,7 @@ const categorieen = [
     label: 'Zwangerschap en kraamzorg',
     beschrijving: 'Bijvoorbeeld eigen bijdragen of aanvullende vergoedingen rond zwangerschap',
     zorgKeys: ['kraamzorg'],
-    polisKeys: ['kraamzorgVergoeding'],
+    polisKeys: ['kraamzorgVergoeding', 'kraamzorgPercentage'],
     breakdownKey: 'kraamzorg'
   },
   {
@@ -186,7 +200,7 @@ const categorieen = [
     label: 'Preventie en cursussen',
     beschrijving: 'Bijvoorbeeld stoppen-met-roken, cursussen of checks',
     zorgKeys: ['preventie'],
-    polisKeys: ['preventieVergoeding'],
+    polisKeys: ['preventieVergoeding', 'preventiePercentage'],
     breakdownKey: 'preventie'
   },
   {
@@ -195,7 +209,7 @@ const categorieen = [
     label: 'Buitenland en vaccinaties',
     beschrijving: 'Bijvoorbeeld reisvaccinaties of zorgkosten rond verblijf in het buitenland',
     zorgKeys: ['buitenland'],
-    polisKeys: ['buitenlandVergoeding'],
+    polisKeys: ['buitenlandVergoeding', 'buitenlandPercentage'],
     breakdownKey: 'buitenland'
   },
   {
@@ -204,7 +218,7 @@ const categorieen = [
     label: 'Diëtist en voedingsadvies',
     beschrijving: 'Praktische extra categorie voor dieetadvies en voedingsbegeleiding',
     zorgKeys: ['dieet'],
-    polisKeys: ['dieetVergoeding'],
+    polisKeys: ['dieetVergoeding', 'dieetPercentage'],
     breakdownKey: 'dieet'
   },
   {
@@ -218,6 +232,27 @@ const categorieen = [
 ];
 
 const alleCategorieIds = categorieen.map((categorie) => categorie.id);
+const stappen = ['zorggebruik', 'polissen', 'vergelijking'];
+const stapMeta = {
+  zorggebruik: {
+    label: 'Vul je zorggebruik in',
+    stap: 'Stap 1',
+    titel: 'Verwacht zorggebruik',
+    beschrijving: 'Begin met je inschatting van zorgkosten uit de categorieen die je hierboven aanzet.'
+  },
+  polissen: {
+    label: 'Voeg je polissen toe',
+    stap: 'Stap 2',
+    titel: 'Polissen invoeren',
+    beschrijving: 'Zet je huidige verzekering en alternatieven naast elkaar met premie en vergoedingen.'
+  },
+  vergelijking: {
+    label: 'Vergelijk de jaarlasten',
+    stap: 'Stap 3',
+    titel: 'Vergelijking',
+    beschrijving: 'Bekijk direct welke polis onderaan de streep het voordeligst uitkomt voor jouw situatie.'
+  }
+};
 
 const zorgVelden = [
   { key: 'tandarts', label: 'Tandarts en mondzorg per jaar', hint: 'Bijvoorbeeld controles, mondhygiënist, vullingen', step: '0.01' },
@@ -326,22 +361,51 @@ const zorgGroepen = [
 ];
 
 const polisVelden = [
-  { key: 'maandpremie', label: 'Maandpremie', kind: 'currency' },
-  { key: 'eigenRisico', label: 'Eigen risico', kind: 'currency' },
-  { key: 'tandartsVergoeding', label: 'Tandarts en mondzorg per jaar', kind: 'currency' },
-  { key: 'fysioSessiesVergoed', label: 'Fysiotherapie of beweegzorg vergoed', kind: 'number' },
-  { key: 'brilVergoeding', label: 'Brillen en lenzen per jaar', kind: 'currency' },
-  { key: 'alternatiefMaxVergoeding', label: 'Alternatief maximum per jaar', kind: 'currency' },
-  { key: 'alternatiefPerSessie', label: 'Alternatief per behandeling', kind: 'currency' },
-  { key: 'hulpmiddelenVergoeding', label: 'Hulpmiddelenvergoeding per jaar', kind: 'currency' },
-  { key: 'medicijnenVergoeding', label: 'Medicijnenvergoeding per jaar', kind: 'currency' },
-  { key: 'psychologischeZorgVergoeding', label: 'Psychologische zorg per jaar', kind: 'currency' },
-  { key: 'gehoorVergoeding', label: 'Gehoor en oren per jaar', kind: 'currency' },
-  { key: 'huidVergoeding', label: 'Huidzorg en acne per jaar', kind: 'currency' },
-  { key: 'kraamzorgVergoeding', label: 'Zwangerschap en kraamzorg per jaar', kind: 'currency' },
-  { key: 'preventieVergoeding', label: 'Preventie en cursussen per jaar', kind: 'currency' },
-  { key: 'buitenlandVergoeding', label: 'Buitenland en vaccinaties per jaar', kind: 'currency' },
-  { key: 'dieetVergoeding', label: 'Diëtistvergoeding per jaar', kind: 'currency' }
+  { key: 'maandpremie', label: 'Maandpremie', kind: 'currency', group: 'basis' },
+  { key: 'eigenRisico', label: 'Eigen risico', kind: 'currency', group: 'basis' },
+  { key: 'tandartsVergoeding', label: 'Tandarts max per jaar', kind: 'currency', group: 'veelgekozen' },
+  { key: 'tandartsPercentage', label: 'Tandarts % vergoeding', kind: 'number', group: 'veelgekozen' },
+  { key: 'fysioSessiesVergoed', label: 'Fysiotherapie of beweegzorg vergoed', kind: 'number', group: 'veelgekozen' },
+  { key: 'brilVergoeding', label: 'Brillen en lenzen max per jaar', kind: 'currency', group: 'veelgekozen' },
+  { key: 'brilPercentage', label: 'Brillen en lenzen % vergoeding', kind: 'number', group: 'veelgekozen' },
+  { key: 'alternatiefMaxVergoeding', label: 'Alternatief maximum per jaar', kind: 'currency', group: 'veelgekozen' },
+  { key: 'alternatiefPerSessie', label: 'Alternatief per behandeling', kind: 'currency', group: 'veelgekozen' },
+  { key: 'hulpmiddelenVergoeding', label: 'Hulpmiddelen max per jaar', kind: 'currency', group: 'veelgekozen' },
+  { key: 'hulpmiddelenPercentage', label: 'Hulpmiddelen % vergoeding', kind: 'number', group: 'veelgekozen' },
+  { key: 'medicijnenVergoeding', label: 'Medicijnen max per jaar', kind: 'currency', group: 'veelgekozen' },
+  { key: 'medicijnenPercentage', label: 'Medicijnen % vergoeding', kind: 'number', group: 'veelgekozen' },
+  { key: 'psychologischeZorgVergoeding', label: 'Psychologische zorg max per jaar', kind: 'currency', group: 'veelgekozen' },
+  { key: 'psychologischeZorgPercentage', label: 'Psychologische zorg % vergoeding', kind: 'number', group: 'veelgekozen' },
+  { key: 'gehoorVergoeding', label: 'Gehoor en oren max per jaar', kind: 'currency', group: 'meeropties' },
+  { key: 'gehoorPercentage', label: 'Gehoor en oren % vergoeding', kind: 'number', group: 'meeropties' },
+  { key: 'huidVergoeding', label: 'Huidzorg en acne max per jaar', kind: 'currency', group: 'meeropties' },
+  { key: 'huidPercentage', label: 'Huidzorg en acne % vergoeding', kind: 'number', group: 'meeropties' },
+  { key: 'kraamzorgVergoeding', label: 'Zwangerschap en kraamzorg max per jaar', kind: 'currency', group: 'meeropties' },
+  { key: 'kraamzorgPercentage', label: 'Zwangerschap en kraamzorg % vergoeding', kind: 'number', group: 'meeropties' },
+  { key: 'preventieVergoeding', label: 'Preventie en cursussen max per jaar', kind: 'currency', group: 'meeropties' },
+  { key: 'preventiePercentage', label: 'Preventie en cursussen % vergoeding', kind: 'number', group: 'meeropties' },
+  { key: 'buitenlandVergoeding', label: 'Buitenland en vaccinaties max per jaar', kind: 'currency', group: 'meeropties' },
+  { key: 'buitenlandPercentage', label: 'Buitenland en vaccinaties % vergoeding', kind: 'number', group: 'meeropties' },
+  { key: 'dieetVergoeding', label: 'Diëtistvergoeding max per jaar', kind: 'currency', group: 'meeropties' },
+  { key: 'dieetPercentage', label: 'Diëtist % vergoeding', kind: 'number', group: 'meeropties' }
+];
+
+const polisGroepen = [
+  {
+    id: 'basis',
+    label: 'Basis',
+    beschrijving: 'Premie en eigen risico voor deze polis.'
+  },
+  {
+    id: 'veelgekozen',
+    label: 'Veelgekozen vergoedingen',
+    beschrijving: 'Vul hier een maximumbedrag, een percentage of allebei in.'
+  },
+  {
+    id: 'meeropties',
+    label: 'Meer opties',
+    beschrijving: 'Alle extra categorieën die je in instellingen hebt aangezet.'
+  }
 ];
 
 const toNumber = (value) => {
@@ -354,6 +418,23 @@ const normalizeCategorieen = (input) => {
 
   const normalized = input.filter((id) => alleCategorieIds.includes(id));
   return normalized.length ? normalized : alleCategorieIds;
+};
+
+const clampPercentage = (value) => Math.max(0, Math.min(100, value));
+
+const berekenCategorieVergoeding = (kosten, maximum, percentage) => {
+  if (kosten <= 0) return 0;
+
+  const cappedPercentage = clampPercentage(percentage);
+  const heeftMaximum = maximum > 0;
+  const heeftPercentage = cappedPercentage > 0;
+
+  if (!heeftMaximum && !heeftPercentage) return 0;
+
+  const vergoedingOpPercentage = heeftPercentage ? kosten * (cappedPercentage / 100) : kosten;
+  const vergoeding = heeftMaximum ? Math.min(vergoedingOpPercentage, maximum) : vergoedingOpPercentage;
+
+  return Math.min(kosten, vergoeding);
 };
 
 const safeLoadState = () => {
@@ -386,7 +467,15 @@ const berekenKosten = (verzekering, zorggebruik, actieveCategorieen) => {
   const jaarPremie = verzekering.maandpremie * 12;
 
   const tandartsEigen = actief.has('tandarts')
-    ? Math.max(0, zorggebruik.tandarts - verzekering.tandartsVergoeding)
+    ? Math.max(
+        0,
+        zorggebruik.tandarts -
+          berekenCategorieVergoeding(
+            zorggebruik.tandarts,
+            verzekering.tandartsVergoeding,
+            verzekering.tandartsPercentage
+          )
+      )
     : 0;
   const fysioTotaal = actief.has('fysio') ? zorggebruik.fysioSessies * zorggebruik.fysioKostenPerSessie : 0;
   const fysioVergoed = actief.has('fysio')
@@ -394,7 +483,11 @@ const berekenKosten = (verzekering, zorggebruik, actieveCategorieen) => {
     : 0;
   const fysioEigen = Math.max(0, fysioTotaal - fysioVergoed);
   const brilEigen = actief.has('bril')
-    ? Math.max(0, zorggebruik.bril - verzekering.brilVergoeding)
+    ? Math.max(
+        0,
+        zorggebruik.bril -
+          berekenCategorieVergoeding(zorggebruik.bril, verzekering.brilVergoeding, verzekering.brilPercentage)
+      )
     : 0;
   const alternatiefTotaal = actief.has('alternatief')
     ? zorggebruik.alternatiefSessies * zorggebruik.alternatiefKostenPerSessie
@@ -406,30 +499,92 @@ const berekenKosten = (verzekering, zorggebruik, actieveCategorieen) => {
   const alternatiefVergoed = Math.min(alternatiefPerSessie, verzekering.alternatiefMaxVergoeding);
   const alternatiefEigen = Math.max(0, alternatiefTotaal - alternatiefVergoed);
   const hulpmiddelenEigen = actief.has('hulpmiddelen')
-    ? Math.max(0, zorggebruik.hulpmiddelen - verzekering.hulpmiddelenVergoeding)
+    ? Math.max(
+        0,
+        zorggebruik.hulpmiddelen -
+          berekenCategorieVergoeding(
+            zorggebruik.hulpmiddelen,
+            verzekering.hulpmiddelenVergoeding,
+            verzekering.hulpmiddelenPercentage
+          )
+      )
     : 0;
   const medicijnenEigen = actief.has('medicijnen')
-    ? Math.max(0, zorggebruik.medicijnen - verzekering.medicijnenVergoeding)
+    ? Math.max(
+        0,
+        zorggebruik.medicijnen -
+          berekenCategorieVergoeding(
+            zorggebruik.medicijnen,
+            verzekering.medicijnenVergoeding,
+            verzekering.medicijnenPercentage
+          )
+      )
     : 0;
   const psychologischeZorgEigen = actief.has('psychologische-zorg')
-    ? Math.max(0, zorggebruik.psychologischeZorg - verzekering.psychologischeZorgVergoeding)
+    ? Math.max(
+        0,
+        zorggebruik.psychologischeZorg -
+          berekenCategorieVergoeding(
+            zorggebruik.psychologischeZorg,
+            verzekering.psychologischeZorgVergoeding,
+            verzekering.psychologischeZorgPercentage
+          )
+      )
     : 0;
   const gehoorEigen = actief.has('gehoor')
-    ? Math.max(0, zorggebruik.gehoor - verzekering.gehoorVergoeding)
+    ? Math.max(
+        0,
+        zorggebruik.gehoor -
+          berekenCategorieVergoeding(zorggebruik.gehoor, verzekering.gehoorVergoeding, verzekering.gehoorPercentage)
+      )
     : 0;
   const huidEigen = actief.has('huid')
-    ? Math.max(0, zorggebruik.huid - verzekering.huidVergoeding)
+    ? Math.max(
+        0,
+        zorggebruik.huid -
+          berekenCategorieVergoeding(zorggebruik.huid, verzekering.huidVergoeding, verzekering.huidPercentage)
+      )
     : 0;
   const kraamzorgEigen = actief.has('kraamzorg')
-    ? Math.max(0, zorggebruik.kraamzorg - verzekering.kraamzorgVergoeding)
+    ? Math.max(
+        0,
+        zorggebruik.kraamzorg -
+          berekenCategorieVergoeding(
+            zorggebruik.kraamzorg,
+            verzekering.kraamzorgVergoeding,
+            verzekering.kraamzorgPercentage
+          )
+      )
     : 0;
   const preventieEigen = actief.has('preventie')
-    ? Math.max(0, zorggebruik.preventie - verzekering.preventieVergoeding)
+    ? Math.max(
+        0,
+        zorggebruik.preventie -
+          berekenCategorieVergoeding(
+            zorggebruik.preventie,
+            verzekering.preventieVergoeding,
+            verzekering.preventiePercentage
+          )
+      )
     : 0;
   const buitenlandEigen = actief.has('buitenland')
-    ? Math.max(0, zorggebruik.buitenland - verzekering.buitenlandVergoeding)
+    ? Math.max(
+        0,
+        zorggebruik.buitenland -
+          berekenCategorieVergoeding(
+            zorggebruik.buitenland,
+            verzekering.buitenlandVergoeding,
+            verzekering.buitenlandPercentage
+          )
+      )
     : 0;
-  const dieetEigen = actief.has('dieet') ? Math.max(0, zorggebruik.dieet - verzekering.dieetVergoeding) : 0;
+  const dieetEigen = actief.has('dieet')
+    ? Math.max(
+        0,
+        zorggebruik.dieet -
+          berekenCategorieVergoeding(zorggebruik.dieet, verzekering.dieetVergoeding, verzekering.dieetPercentage)
+      )
+    : 0;
   const eigenRisicoGebruikt = actief.has('overig')
     ? Math.min(zorggebruik.overigOnderEigenRisico, verzekering.eigenRisico)
     : 0;
@@ -474,6 +629,84 @@ const berekenKosten = (verzekering, zorggebruik, actieveCategorieen) => {
 };
 
 const formatEuro = (value) => euro.format(value || 0);
+
+const driverLabels = {
+  premie: 'Jaarpremie',
+  eigenRisico: 'Eigen risico',
+  tandarts: 'Tandarts en mondzorg',
+  fysio: 'Fysiotherapie en beweegzorg',
+  bril: 'Brillen en lenzen',
+  alternatief: 'Alternatieve zorg',
+  hulpmiddelen: 'Hulpmiddelen',
+  medicijnen: 'Medicijnen',
+  psychologischeZorg: 'Psychologische zorg',
+  gehoor: 'Gehoor en oren',
+  huid: 'Huidzorg en acne',
+  kraamzorg: 'Zwangerschap en kraamzorg',
+  preventie: 'Preventie en cursussen',
+  buitenland: 'Buitenland en vaccinaties',
+  dieet: 'Dietist en voedingsadvies'
+};
+
+const beleidsRegelLabels = {
+  tandartsPercentage: 'Tandarts',
+  brilPercentage: 'Brillen en lenzen',
+  hulpmiddelenPercentage: 'Hulpmiddelen',
+  medicijnenPercentage: 'Medicijnen',
+  psychologischeZorgPercentage: 'Psychologische zorg',
+  gehoorPercentage: 'Gehoor en oren',
+  huidPercentage: 'Huidzorg en acne',
+  kraamzorgPercentage: 'Zwangerschap en kraamzorg',
+  preventiePercentage: 'Preventie en cursussen',
+  buitenlandPercentage: 'Buitenland en vaccinaties',
+  dieetPercentage: 'Diëtist'
+};
+
+const getKostenDrivers = (kosten, actieveCategorieen) => {
+  const actieveSet = new Set(actieveCategorieen);
+  const categorieMap = {
+    tandarts: 'tandarts',
+    fysio: 'fysio',
+    bril: 'bril',
+    alternatief: 'alternatief',
+    hulpmiddelen: 'hulpmiddelen',
+    medicijnen: 'medicijnen',
+    psychologischeZorg: 'psychologische-zorg',
+    gehoor: 'gehoor',
+    huid: 'huid',
+    kraamzorg: 'kraamzorg',
+    preventie: 'preventie',
+    buitenland: 'buitenland',
+    dieet: 'dieet'
+  };
+
+  const drivers = [
+    { key: 'premie', value: kosten.jaarPremie },
+    { key: 'eigenRisico', value: kosten.eigenRisicoGebruikt }
+  ];
+
+  Object.entries(kosten.breakdown).forEach(([key, value]) => {
+    if (value <= 0) return;
+    const categorieId = categorieMap[key];
+    if (categorieId && !actieveSet.has(categorieId)) return;
+    drivers.push({ key, value });
+  });
+
+  return drivers
+    .filter((item) => item.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 3)
+    .map((item) => ({
+      ...item,
+      label: driverLabels[item.key] || item.key
+    }));
+};
+
+const getPolisRegels = (verzekering) =>
+  Object.entries(beleidsRegelLabels)
+    .filter(([key]) => clampPercentage(verzekering[key]) > 0)
+    .map(([key, label]) => `${label}: ${clampPercentage(verzekering[key])}%`)
+    .slice(0, 4);
 
 const renderPrintHtml = ({ zorggebruik, resultaten, goedkoopste, actieveCategorieen }) => {
   const actief = new Set(actieveCategorieen);
@@ -573,6 +806,10 @@ export default function App() {
   const [zorggebruik, setZorggebruik] = useState(storedState.zorggebruik);
   const [actieveCategorieen, setActieveCategorieen] = useState(storedState.actieveCategorieen);
   const [verzekeringen, setVerzekeringen] = useState(storedState.verzekeringen);
+  const [actieveStap, setActieveStap] = useState('zorggebruik');
+  const [openPolissen, setOpenPolissen] = useState(() =>
+    storedState.verzekeringen.map((verzekering) => verzekering.id)
+  );
   const [settingsOpen, setSettingsOpen] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -633,6 +870,13 @@ export default function App() {
     );
   });
 
+  const zichtbarePolisGroepen = polisGroepen
+    .map((groep) => ({
+      ...groep,
+      velden: zichtbarePolisVelden.filter((veld) => veld.group === groep.id)
+    }))
+    .filter((groep) => groep.velden.length > 0);
+
   const updateZorggebruik = (key, value) => {
     setZorggebruik((current) => ({
       ...current,
@@ -656,11 +900,44 @@ export default function App() {
   const voegVerzekeringToe = () => {
     const nextId = Math.max(0, ...verzekeringen.map((verzekering) => verzekering.id)) + 1;
     setVerzekeringen((current) => [...current, createInsurance(nextId, `Nieuwe polis ${nextId}`)]);
+    setOpenPolissen((current) => [...current, nextId]);
   };
 
   const verwijderVerzekering = (id) => {
     if (verzekeringen.length === 1) return;
     setVerzekeringen((current) => current.filter((verzekering) => verzekering.id !== id));
+    setOpenPolissen((current) => current.filter((openId) => openId !== id));
+  };
+
+  const dupliceerVerzekering = (id) => {
+    let nieuweId = null;
+
+    setVerzekeringen((current) => {
+      const bron = current.find((verzekering) => verzekering.id === id);
+      if (!bron) return current;
+
+      nieuweId = Math.max(0, ...current.map((verzekering) => verzekering.id)) + 1;
+      const kopie = {
+        ...bron,
+        id: nieuweId,
+        naam: `${bron.naam} kopie`
+      };
+
+      const index = current.findIndex((verzekering) => verzekering.id === id);
+      const next = [...current];
+      next.splice(index + 1, 0, kopie);
+      return next;
+    });
+
+    if (nieuweId != null) {
+      setOpenPolissen((current) => [...current, nieuweId]);
+    }
+  };
+
+  const togglePolisOpen = (id) => {
+    setOpenPolissen((current) =>
+      current.includes(id) ? current.filter((openId) => openId !== id) : [...current, id]
+    );
   };
 
   const toggleCategorie = (categorieId) => {
@@ -709,12 +986,12 @@ export default function App() {
 
       setZorggebruik({ ...defaultState.zorggebruik, ...parsed.zorggebruik });
       setActieveCategorieen(normalizeCategorieen(parsed.actieveCategorieen));
-      setVerzekeringen(
-        parsed.verzekeringen.map((verzekering, index) => ({
-          ...createInsurance(index + 1, `Polis ${index + 1}`),
-          ...verzekering
-        }))
-      );
+      const nextVerzekeringen = parsed.verzekeringen.map((verzekering, index) => ({
+        ...createInsurance(index + 1, `Polis ${index + 1}`),
+        ...verzekering
+      }));
+      setVerzekeringen(nextVerzekeringen);
+      setOpenPolissen(nextVerzekeringen.map((verzekering) => verzekering.id));
       window.alert('Bestand geïmporteerd.');
     } catch (error) {
       window.alert(error.message || 'Importeren is mislukt.');
@@ -758,7 +1035,7 @@ export default function App() {
     );
 
     printDocument.open();
-        printDocument.write(
+    printDocument.write(
       renderPrintHtml({
         zorggebruik,
         resultaten,
@@ -768,6 +1045,10 @@ export default function App() {
     );
     printDocument.close();
   };
+
+  const actieveStapIndex = stappen.indexOf(actieveStap);
+  const vorigeStap = actieveStapIndex > 0 ? stappen[actieveStapIndex - 1] : null;
+  const volgendeStap = actieveStapIndex < stappen.length - 1 ? stappen[actieveStapIndex + 1] : null;
 
   return (
     <main className="page-shell">
@@ -897,217 +1178,337 @@ export default function App() {
         </section>
       ) : null}
 
-      <section className="workflow-strip" aria-label="Stappen">
-        <a href="#step-zorggebruik" className="workflow-card">
-          <span className="section-kicker">Stap 1</span>
-          <strong>Vul je zorggebruik in</strong>
-          <p>Begin met je inschatting van zorgkosten uit de categorieën die je hierboven aanzet.</p>
-        </a>
-        <a href="#step-polissen" className="workflow-card">
-          <span className="section-kicker">Stap 2</span>
-          <strong>Voeg je polissen toe</strong>
-          <p>Zet je huidige verzekering en alternatieven naast elkaar met premie en vergoedingen.</p>
-        </a>
-        <a href="#step-vergelijking" className="workflow-card">
-          <span className="section-kicker">Stap 3</span>
-          <strong>Vergelijk de jaarlasten</strong>
-          <p>Bekijk direct welke polis onderaan de streep het voordeligst uitkomt voor jouw situatie.</p>
-        </a>
+      <section className="workspace-tabs" aria-label="Stappen">
+        {stappen.map((stap) => (
+          <button
+            key={stap}
+            type="button"
+            className={`workflow-card workflow-tab ${actieveStap === stap ? 'is-active' : ''}`}
+            onClick={() => setActieveStap(stap)}
+          >
+            <span className="section-kicker">{stapMeta[stap].stap}</span>
+            <strong>{stapMeta[stap].label}</strong>
+            <p>{stapMeta[stap].beschrijving}</p>
+          </button>
+        ))}
       </section>
 
-      <section className="workspace-grid">
-        <section className="step-column" id="step-zorggebruik">
-          <div className="step-intro">
-            <p className="section-kicker">Stap 1</p>
-            <h2>Verwacht zorggebruik</h2>
-            <p>Vul eerst in wat je komend jaar denkt te gebruiken. De vergelijking rechts rekent direct mee met de categorieën die je in instellingen hebt aangezet.</p>
-          </div>
-          <article className="panel">
-            <div className="zorggroepen-stack">
-              {zichtbareZorgGroepen.map((groep) => (
-                <section
-                  key={groep.id}
-                  className={`zorggroep-card ${groep.velden.length > 1 ? 'zorggroep-card-paired' : ''}`}
-                >
-                  <div className="zorggroep-header">
-                    <h3>{groep.title}</h3>
-                    <p>{groep.description}</p>
-                  </div>
-                  <div className={`field-grid ${groep.velden.length > 1 ? 'field-grid-paired' : ''}`}>
-                    {groep.velden.map((veld) => (
-                      <label key={veld.key} className="field">
-                        <span>{veld.label}</span>
-                        <input
-                          type="number"
-                          min="0"
-                          step={veld.step}
-                          value={zorggebruik[veld.key]}
-                          onChange={(event) => updateZorggebruik(veld.key, event.target.value)}
-                        />
-                        <small>{veld.hint}</small>
-                      </label>
-                    ))}
-                  </div>
-                </section>
-              ))}
+      <section className="tab-shell">
+        {actieveStap === 'zorggebruik' ? (
+          <section className="tab-panel tab-panel-zorggebruik" id="step-zorggebruik">
+            <div className="step-intro tab-intro">
+              <p className="section-kicker">{stapMeta.zorggebruik.stap}</p>
+              <h2>{stapMeta.zorggebruik.titel}</h2>
+              <p>Vul eerst in wat je komend jaar denkt te gebruiken. De vergelijking blijft overal live doorrekenen.</p>
             </div>
-          </article>
-        </section>
-
-        <section className="step-column" id="step-polissen">
-          <div className="step-intro step-intro-with-action">
-            <div>
-              <p className="section-kicker">Stap 2</p>
-              <h2>Polissen invoeren</h2>
-              <p>Voeg je huidige verzekering en alternatieven toe. Je kunt zoveel polissen vergelijken als je wilt.</p>
-            </div>
-            <button type="button" className="primary-button step-button" onClick={voegVerzekeringToe}>
-              <Plus size={18} />
-              Polis toevoegen
-            </button>
-          </div>
-          <section className="insurance-stack">
-            {verzekeringen.map((verzekering, index) => (
-              <article key={verzekering.id} className="insurance-card">
-                <div className="insurance-header">
-                  <label className="field grow">
-                    <span className="polis-label-row">
-                      <span>Naam van de polis</span>
-                      <span className="polis-badge">Polis {index + 1}</span>
-                    </span>
-                    <input
-                      type="text"
-                      value={verzekering.naam}
-                      onChange={(event) => updateVerzekering(verzekering.id, 'naam', event.target.value)}
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    className="icon-button"
-                    onClick={() => verwijderVerzekering(verzekering.id)}
-                    disabled={verzekeringen.length === 1}
-                    aria-label={`Verwijder ${verzekering.naam}`}
+            <article className="panel">
+              <div className="zorggroepen-grid">
+                {zichtbareZorgGroepen.map((groep) => (
+                  <section
+                    key={groep.id}
+                    className={`zorggroep-card ${groep.velden.length > 1 ? 'zorggroep-card-paired' : ''}`}
                   >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-
-                <div className="field-grid policy-grid">
-                  {zichtbarePolisVelden.map((veld) => (
-                    <label key={veld.key} className="field">
-                      <span>{veld.label}</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step={veld.kind === 'number' ? '1' : '0.01'}
-                        value={verzekering[veld.key]}
-                        onChange={(event) => updateVerzekering(verzekering.id, veld.key, event.target.value)}
-                      />
-                    </label>
-                  ))}
-                  <label className="field wide">
-                    <span>Notitie bij deze polis</span>
-                    <textarea
-                      rows="3"
-                      value={verzekering.notitie}
-                      onChange={(event) => updateVerzekering(verzekering.id, 'notitie', event.target.value)}
-                      placeholder="Bijvoorbeeld: tandarts alleen na wachttijd, alternatieve zorg alleen bij aangesloten behandelaars."
-                    />
-                  </label>
-                </div>
-              </article>
-            ))}
+                    <div className="zorggroep-header">
+                      <h3>{groep.title}</h3>
+                      <p>{groep.description}</p>
+                    </div>
+                    <div className={`field-grid ${groep.velden.length > 1 ? 'field-grid-paired' : ''}`}>
+                      {groep.velden.map((veld) => (
+                        <label key={veld.key} className="field">
+                          <span>{veld.label}</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step={veld.step}
+                            value={zorggebruik[veld.key]}
+                            onChange={(event) => updateZorggebruik(veld.key, event.target.value)}
+                          />
+                          <small>{veld.hint}</small>
+                        </label>
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            </article>
           </section>
-        </section>
+        ) : null}
 
-        <section className="step-column" id="step-vergelijking">
-          <div className="step-intro">
-            <p className="section-kicker">Stap 3</p>
-            <h2>Vergelijking</h2>
-            <p>Hier zie je meteen welke polis het voordeligst uitpakt op basis van jouw eigen invoer.</p>
-          </div>
-          <article className="panel insight-panel">
-            <div className="insight-stack">
-              <div className="insight-card highlight">
-                <span>Goedkoopste keuze</span>
-                <strong>{goedkoopste ? goedkoopste.verzekering.naam : 'Nog niet beschikbaar'}</strong>
+        {actieveStap === 'polissen' ? (
+          <section className="tab-panel tab-panel-polissen" id="step-polissen">
+            <div className="step-intro step-intro-with-action tab-intro">
+              <div>
+                <p className="section-kicker">{stapMeta.polissen.stap}</p>
+                <h2>{stapMeta.polissen.titel}</h2>
                 <p>
-                  {goedkoopste
-                    ? `Geschatte jaarlast: ${formatEuro(goedkoopste.kosten.totaal)}`
-                    : 'Vul een polis in om direct een ranglijst te zien.'}
+                  Voeg je huidige verzekering en alternatieven toe. Gebruik dupliceren om snel varianten te maken,
+                  en vul per categorie een maximumbedrag, een percentage of allebei in.
                 </p>
               </div>
-              <div className="insight-card">
-                <span>Aantal polissen</span>
-                <strong>{verzekeringen.length}</strong>
-                <p>Je kunt onbeperkt extra polissen toevoegen voor dezelfde zorginschatting.</p>
-              </div>
-              <div className="insight-card">
-                <span>Belangrijk</span>
-                <strong>Geen advies, wel rekenhulp</strong>
-                <p>Deze tool rekent alleen met wat jij invult en houdt geen rekening met elke polisuitzondering.</p>
-              </div>
+              <button type="button" className="primary-button step-button" onClick={voegVerzekeringToe}>
+                <Plus size={18} />
+                Polis toevoegen
+              </button>
             </div>
-          </article>
-          <section className="results-grid">
-            {resultaten.map((resultaat, index) => (
-              <article
-                key={resultaat.verzekering.id}
-                className={`result-card ${index === 0 ? 'is-best' : ''}`}
-                data-testid="result-card"
-              >
-                <div className="result-topline">
-                  <div>
-                    <p className="result-rank">
-                      {index === 0 ? 'Meest voordelig voor deze inschatting' : `Plaats ${index + 1}`}
-                    </p>
-                    <h3>{resultaat.verzekering.naam}</h3>
-                  </div>
-                  <div className="result-total">{formatEuro(resultaat.kosten.totaal)}</div>
-                </div>
-
-                <div className="metric-row">
-                  <div className="metric-box">
-                    <span>Jaarpremie</span>
-                    <strong>{formatEuro(resultaat.kosten.jaarPremie)}</strong>
-                  </div>
-                  <div className="metric-box">
-                    <span>Eigen risico gebruikt</span>
-                    <strong>{formatEuro(resultaat.kosten.eigenRisicoGebruikt)}</strong>
-                  </div>
-                  <div className="metric-box">
-                    <span>Eigen kosten aanvullend</span>
-                    <strong>{formatEuro(resultaat.kosten.eigenKostenAanvullend)}</strong>
-                  </div>
-                </div>
-
-                <div className="difference-bar">
-                  {index === 0 ? (
-                    <span>Referentiepunt voor deze vergelijking</span>
-                  ) : (
-                    <span>{formatEuro(resultaat.verschilMetGoedkoopste)} duurder dan de goedkoopste optie</span>
-                  )}
-                </div>
-
-                <details className="breakdown">
-                  <summary>Bekijk opbouw van de eigen kosten</summary>
-                  <div className="breakdown-grid">
-                    {categorieen
-                      .filter(
-                        (categorie) =>
-                          categorie.breakdownKey && actieveCategorieSet.has(categorie.id)
-                      )
-                      .map((categorie) => (
-                        <div key={categorie.id}>
-                          {categorie.label}: {formatEuro(resultaat.kosten.breakdown[categorie.breakdownKey])}
+            <section className="insurance-stack">
+              {verzekeringen.map((verzekering, index) => {
+                const polisOpen = openPolissen.includes(verzekering.id);
+                const polisRegels = getPolisRegels(verzekering);
+                return (
+                  <article key={verzekering.id} className="insurance-card">
+                    <div className="insurance-card-top">
+                      <div className="insurance-header">
+                        <label className="field grow">
+                          <span className="polis-label-row">
+                            <span>Naam van de polis</span>
+                            <span className="polis-badge">Polis {index + 1}</span>
+                          </span>
+                          <input
+                            type="text"
+                            value={verzekering.naam}
+                            onChange={(event) => updateVerzekering(verzekering.id, 'naam', event.target.value)}
+                          />
+                        </label>
+                        <div className="policy-actions">
+                          <button
+                            type="button"
+                            className="mini-button"
+                            onClick={() => dupliceerVerzekering(verzekering.id)}
+                          >
+                            <Copy size={16} />
+                            Dupliceer
+                          </button>
+                          <button
+                            type="button"
+                            className="mini-button"
+                            onClick={() => togglePolisOpen(verzekering.id)}
+                          >
+                            {polisOpen ? 'Inklappen' : 'Uitklappen'}
+                          </button>
+                          <button
+                            type="button"
+                            className="icon-button"
+                            onClick={() => verwijderVerzekering(verzekering.id)}
+                            disabled={verzekeringen.length === 1}
+                            aria-label={`Verwijder ${verzekering.naam}`}
+                          >
+                            <Trash2 size={18} />
+                          </button>
                         </div>
-                      ))}
-                  </div>
-                </details>
-              </article>
-            ))}
+                      </div>
+
+                      {!polisOpen ? (
+                        <div className="policy-collapsed-summary">
+                          <span>{formatEuro(verzekering.maandpremie)} per maand</span>
+                          <span>{Math.max(0, zichtbarePolisVelden.length - 1)} vergoedingsvelden actief</span>
+                          {polisRegels.length ? <span>{polisRegels.length} procentregels actief</span> : null}
+                          {verzekering.notitie ? <span>Notitie toegevoegd</span> : null}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {polisOpen ? (
+                      <div className="policy-sections">
+                        {zichtbarePolisGroepen.map((groep) => (
+                          <section key={groep.id} className="policy-section">
+                            <div className="policy-section-header">
+                              <h3>{groep.label}</h3>
+                              <p>{groep.beschrijving}</p>
+                            </div>
+                            <div className="field-grid policy-grid">
+                              {groep.velden.map((veld) => (
+                                <label key={veld.key} className="field">
+                                  <span>{veld.label}</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max={veld.key.endsWith('Percentage') ? '100' : undefined}
+                                    step={veld.kind === 'number' ? '1' : '0.01'}
+                                    value={verzekering[veld.key]}
+                                    onChange={(event) => updateVerzekering(verzekering.id, veld.key, event.target.value)}
+                                  />
+                                </label>
+                              ))}
+                            </div>
+                          </section>
+                        ))}
+
+                        <section className="policy-section policy-note-section">
+                          <div className="policy-section-header">
+                            <h3>Toelichting en voorwaarden</h3>
+                            <p>
+                              Gebruik dit voor wachttijd, gecontracteerde zorg, speciale voorwaarden of zaken die niet
+                              in de berekening passen.
+                            </p>
+                          </div>
+                          <label className="field">
+                            <span>Notitie bij deze polis</span>
+                            <textarea
+                              rows="3"
+                              value={verzekering.notitie}
+                              onChange={(event) => updateVerzekering(verzekering.id, 'notitie', event.target.value)}
+                              placeholder="Bijvoorbeeld: tandarts alleen na wachttijd, alternatieve zorg alleen bij aangesloten behandelaars."
+                            />
+                          </label>
+                        </section>
+                      </div>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </section>
           </section>
-        </section>
+        ) : null}
+
+        {actieveStap === 'vergelijking' ? (
+          <section className="tab-panel tab-panel-vergelijking" id="step-vergelijking">
+            <div className="step-intro tab-intro">
+              <p className="section-kicker">{stapMeta.vergelijking.stap}</p>
+              <h2>{stapMeta.vergelijking.titel}</h2>
+              <p>Hier zie je meteen welke polis het voordeligst uitpakt op basis van jouw eigen invoer.</p>
+            </div>
+            <div className="results-layout">
+              <article className="panel insight-panel">
+                <div className="insight-stack">
+                  <div className="insight-card highlight">
+                    <span>Goedkoopste keuze</span>
+                    <strong>{goedkoopste ? goedkoopste.verzekering.naam : 'Nog niet beschikbaar'}</strong>
+                    <p>
+                      {goedkoopste
+                        ? `Geschatte jaarlast: ${formatEuro(goedkoopste.kosten.totaal)}`
+                        : 'Vul een polis in om direct een ranglijst te zien.'}
+                    </p>
+                  </div>
+                  <div className="insight-card">
+                    <span>Aantal polissen</span>
+                    <strong>{verzekeringen.length}</strong>
+                    <p>Je kunt onbeperkt extra polissen toevoegen voor dezelfde zorginschatting.</p>
+                  </div>
+                  <div className="insight-card">
+                    <span>Belangrijk</span>
+                    <strong>Geen advies, wel rekenhulp</strong>
+                    <p>Deze tool rekent alleen met wat jij invult en houdt geen rekening met elke polisuitzondering.</p>
+                  </div>
+                </div>
+              </article>
+              <section className="results-grid">
+                {resultaten.map((resultaat, index) => {
+                  const topDrivers = getKostenDrivers(resultaat.kosten, actieveCategorieen);
+                  const polisRegels = getPolisRegels(resultaat.verzekering);
+                  return (
+                    <article
+                      key={resultaat.verzekering.id}
+                      className={`result-card ${index === 0 ? 'is-best' : ''}`}
+                      data-testid="result-card"
+                    >
+                      <div className="result-topline">
+                        <div>
+                          <p className="result-rank">
+                            {index === 0 ? 'Meest voordelig voor deze inschatting' : `Plaats ${index + 1}`}
+                          </p>
+                          <h3>{resultaat.verzekering.naam}</h3>
+                        </div>
+                        <div className="result-total">{formatEuro(resultaat.kosten.totaal)}</div>
+                      </div>
+
+                      {topDrivers.length ? (
+                        <div className="result-highlights">
+                          <span className="result-highlights-label">Belangrijkste kostenposten</span>
+                          <div className="result-highlights-list">
+                            {topDrivers.map((driver) => (
+                              <div key={driver.key} className="highlight-pill">
+                                <span>{driver.label}</span>
+                                <strong>{formatEuro(driver.value)}</strong>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {polisRegels.length ? (
+                        <div className="result-rules">
+                          <span className="result-highlights-label">Actieve polisregels</span>
+                          <div className="result-highlights-list">
+                            {polisRegels.map((regel) => (
+                              <div key={regel} className="highlight-pill highlight-pill-soft">
+                                <strong>{regel}</strong>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      <div className="metric-row">
+                        <div className="metric-box">
+                          <span>Jaarpremie</span>
+                          <strong>{formatEuro(resultaat.kosten.jaarPremie)}</strong>
+                        </div>
+                        <div className="metric-box">
+                          <span>Eigen risico gebruikt</span>
+                          <strong>{formatEuro(resultaat.kosten.eigenRisicoGebruikt)}</strong>
+                        </div>
+                        <div className="metric-box">
+                          <span>Eigen kosten aanvullend</span>
+                          <strong>{formatEuro(resultaat.kosten.eigenKostenAanvullend)}</strong>
+                        </div>
+                      </div>
+
+                      <div className="difference-bar">
+                        {index === 0 ? (
+                          <span>Referentiepunt voor deze vergelijking</span>
+                        ) : (
+                          <span>{formatEuro(resultaat.verschilMetGoedkoopste)} duurder dan de goedkoopste optie</span>
+                        )}
+                      </div>
+
+                      <details className="breakdown">
+                        <summary>Bekijk opbouw van de eigen kosten</summary>
+                        <div className="breakdown-grid">
+                          {categorieen
+                            .filter(
+                              (categorie) =>
+                                categorie.breakdownKey && actieveCategorieSet.has(categorie.id)
+                            )
+                            .map((categorie) => (
+                              <div key={categorie.id}>
+                                {categorie.label}: {formatEuro(resultaat.kosten.breakdown[categorie.breakdownKey])}
+                              </div>
+                            ))}
+                        </div>
+                      </details>
+
+                      {resultaat.verzekering.notitie ? (
+                        <div className="policy-note-box">
+                          <span className="result-highlights-label">Opmerking bij deze polis</span>
+                          <p>{resultaat.verzekering.notitie}</p>
+                        </div>
+                      ) : null}
+                    </article>
+                  );
+                })}
+              </section>
+            </div>
+          </section>
+        ) : null}
+
+        <div className="tab-footer">
+          {vorigeStap ? (
+            <button type="button" className="secondary-button" onClick={() => setActieveStap(vorigeStap)}>
+              <ChevronLeft size={18} />
+              Vorige
+            </button>
+          ) : (
+            <span />
+          )}
+          {volgendeStap ? (
+            <button type="button" className="primary-button" onClick={() => setActieveStap(volgendeStap)}>
+              Volgende
+              <ChevronRight size={18} />
+            </button>
+          ) : (
+            <span />
+          )}
+        </div>
       </section>
     </main>
   );
