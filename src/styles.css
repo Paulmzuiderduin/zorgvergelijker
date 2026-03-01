@@ -80,7 +80,9 @@ button {
 .panel,
 .insurance-card,
 .result-card,
-.workflow-card {
+.workflow-card,
+.settings-panel,
+.toggle-card {
   position: relative;
   z-index: 1;
   border: 1px solid var(--border);
@@ -234,6 +236,79 @@ button {
   line-height: 1.5;
 }
 
+.settings-panel {
+  margin-top: 1rem;
+  border-radius: 1.6rem;
+  padding: 1.3rem;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.settings-header h2 {
+  margin: 0.3rem 0 0;
+  font-size: 1.4rem;
+}
+
+.settings-header p:last-child {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.settings-groups {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.settings-group-label {
+  margin: 0 0 0.7rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  color: var(--brand-dark);
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.toggle-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.9rem;
+  align-items: start;
+  border-radius: 1.2rem;
+  padding: 0.95rem 1rem;
+}
+
+.toggle-card input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.2rem;
+  accent-color: var(--brand);
+}
+
+.toggle-card strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.toggle-card p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .workspace-grid {
   display: grid;
   grid-template-columns: minmax(250px, 0.9fr) minmax(360px, 1.25fr) minmax(300px, 1fr);
@@ -257,6 +332,9 @@ button {
 
 .step-intro {
   padding: 0.2rem 0.15rem 0;
+  min-height: 15.5rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .step-intro h2 {
@@ -271,12 +349,12 @@ button {
 }
 
 .step-intro-with-action {
-  display: grid;
-  gap: 0.9rem;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .step-button {
-  justify-self: start;
+  align-self: flex-start;
 }
 
 .panel-heading,
@@ -485,6 +563,7 @@ button {
   .hero-card,
   .workflow-strip,
   .workspace-grid,
+  .settings-grid,
   .policy-grid,
   .metric-row,
   .breakdown-grid {
@@ -494,12 +573,17 @@ button {
   .result-topline,
   .section-header,
   .insurance-header,
-  .step-intro-with-action {
+  .step-intro-with-action,
+  .settings-header {
     flex-direction: column;
   }
 
   .result-total {
     text-align: left;
+  }
+
+  .step-intro {
+    min-height: unset;
   }
 }
 
@@ -513,7 +597,9 @@ button {
   .panel,
   .insurance-card,
   .result-card,
-  .workflow-card {
+  .workflow-card,
+  .settings-panel,
+  .toggle-card {
     border-radius: 1.35rem;
     padding: 1rem;
   }
@@ -557,7 +643,9 @@ button {
   .panel,
   .insurance-card,
   .result-card,
-  .workflow-card {
+  .workflow-card,
+  .settings-panel,
+  .toggle-card {
     box-shadow: none;
     background: white;
     backdrop-filter: none;

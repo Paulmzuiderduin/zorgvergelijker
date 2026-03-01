@@ -4,6 +4,7 @@ import {
   Download,
   FileText,
   Plus,
+  Settings2,
   ShieldCheck,
   Trash2,
   Upload
@@ -28,7 +29,9 @@ const createInsurance = (id, naam) => ({
   brilVergoeding: 0,
   alternatiefMaxVergoeding: 0,
   alternatiefPerSessie: 0,
-  ggzVergoeding: 0,
+  hulpmiddelenVergoeding: 0,
+  medicijnenVergoeding: 0,
+  psychologischeZorgVergoeding: 0,
   dieetVergoeding: 0,
   notitie: ''
 });
@@ -41,10 +44,23 @@ const defaultState = {
     bril: 0,
     alternatiefSessies: 0,
     alternatiefKostenPerSessie: 65,
-    ggz: 0,
+    hulpmiddelen: 0,
+    medicijnen: 0,
+    psychologischeZorg: 0,
     dieet: 0,
     overigOnderEigenRisico: 0
   },
+  actieveCategorieen: [
+    'tandarts',
+    'fysio',
+    'bril',
+    'alternatief',
+    'hulpmiddelen',
+    'medicijnen',
+    'psychologische-zorg',
+    'dieet',
+    'overig'
+  ],
   verzekeringen: [
     createInsurance(1, 'Mijn huidige polis'),
     {
@@ -54,38 +70,136 @@ const defaultState = {
       fysioSessiesVergoed: 9,
       alternatiefMaxVergoeding: 200,
       alternatiefPerSessie: 40,
-      brilVergoeding: 100
+      brilVergoeding: 100,
+      hulpmiddelenVergoeding: 150,
+      medicijnenVergoeding: 80
     }
   ]
 };
 
+const categorieen = [
+  {
+    id: 'tandarts',
+    groep: 'vgz',
+    label: 'Tandarts en mondzorg',
+    beschrijving: 'VGZ meest gezocht: tandartskosten en tandartsvergoeding',
+    zorgKeys: ['tandarts'],
+    polisKeys: ['tandartsVergoeding'],
+    breakdownKey: 'tandarts'
+  },
+  {
+    id: 'fysio',
+    groep: 'vgz',
+    label: 'Fysiotherapie en beweegzorg',
+    beschrijving: 'VGZ meest gezocht: sessies, prijs per sessie en aantal vergoede behandelingen',
+    zorgKeys: ['fysioSessies', 'fysioKostenPerSessie'],
+    polisKeys: ['fysioSessiesVergoed'],
+    breakdownKey: 'fysio'
+  },
+  {
+    id: 'bril',
+    groep: 'vgz',
+    label: 'Brillen en lenzen',
+    beschrijving: 'VGZ meest gezocht: brillen- en lenzenkosten plus vergoeding',
+    zorgKeys: ['bril'],
+    polisKeys: ['brilVergoeding'],
+    breakdownKey: 'bril'
+  },
+  {
+    id: 'alternatief',
+    groep: 'vgz',
+    label: 'Alternatieve zorg',
+    beschrijving: 'VGZ meest gezocht: behandelingen, prijs per behandeling en maxima',
+    zorgKeys: ['alternatiefSessies', 'alternatiefKostenPerSessie'],
+    polisKeys: ['alternatiefMaxVergoeding', 'alternatiefPerSessie'],
+    breakdownKey: 'alternatief'
+  },
+  {
+    id: 'hulpmiddelen',
+    groep: 'vgz',
+    label: 'Hulpmiddelen',
+    beschrijving: 'VGZ meest gezocht: hulpmiddelenkosten en vergoeding',
+    zorgKeys: ['hulpmiddelen'],
+    polisKeys: ['hulpmiddelenVergoeding'],
+    breakdownKey: 'hulpmiddelen'
+  },
+  {
+    id: 'medicijnen',
+    groep: 'vgz',
+    label: 'Medicijnen',
+    beschrijving: 'VGZ meest gezocht: medicijnkosten en vergoeding',
+    zorgKeys: ['medicijnen'],
+    polisKeys: ['medicijnenVergoeding'],
+    breakdownKey: 'medicijnen'
+  },
+  {
+    id: 'psychologische-zorg',
+    groep: 'vgz',
+    label: 'Psychologische zorg',
+    beschrijving: 'VGZ meest gezocht: psychologische zorg en vergoeding',
+    zorgKeys: ['psychologischeZorg'],
+    polisKeys: ['psychologischeZorgVergoeding'],
+    breakdownKey: 'psychologischeZorg'
+  },
+  {
+    id: 'dieet',
+    groep: 'extra',
+    label: 'Diëtist en voedingsadvies',
+    beschrijving: 'Praktische extra categorie voor dieetadvies en voedingsbegeleiding',
+    zorgKeys: ['dieet'],
+    polisKeys: ['dieetVergoeding'],
+    breakdownKey: 'dieet'
+  },
+  {
+    id: 'overig',
+    groep: 'extra',
+    label: 'Overig onder eigen risico',
+    beschrijving: 'Algemene categorie voor zorg die vooral via het eigen risico loopt',
+    zorgKeys: ['overigOnderEigenRisico'],
+    polisKeys: ['eigenRisico']
+  }
+];
+
+const alleCategorieIds = categorieen.map((categorie) => categorie.id);
+
 const zorgVelden = [
-  { key: 'tandarts', label: 'Tandartskosten per jaar', hint: 'Bijvoorbeeld controles, mondhygiënist, vullingen', step: '0.01' },
-  { key: 'fysioSessies', label: 'Fysiosessies per jaar', hint: 'Aantal behandelingen', step: '1' },
-  { key: 'fysioKostenPerSessie', label: 'Kosten per fysiosessie', hint: 'Gemiddelde prijs per behandeling', step: '0.01' },
-  { key: 'bril', label: 'Bril of lenzen', hint: 'Jaarbedrag dat je verwacht uit te geven', step: '0.01' },
+  { key: 'tandarts', label: 'Tandarts en mondzorg per jaar', hint: 'Bijvoorbeeld controles, mondhygiënist, vullingen', step: '0.01' },
+  { key: 'fysioSessies', label: 'Fysiotherapie of beweegzorg per jaar', hint: 'Aantal behandelingen', step: '1' },
+  { key: 'fysioKostenPerSessie', label: 'Kosten per fysiobehandeling', hint: 'Gemiddelde prijs per behandeling', step: '0.01' },
+  { key: 'bril', label: 'Brillen en lenzen', hint: 'Jaarbedrag dat je verwacht uit te geven', step: '0.01' },
   { key: 'alternatiefSessies', label: 'Alternatieve behandelingen', hint: 'Aantal behandelingen', step: '1' },
   { key: 'alternatiefKostenPerSessie', label: 'Kosten per alternatieve behandeling', hint: 'Bijvoorbeeld acupunctuur of osteopathie', step: '0.01' },
-  { key: 'ggz', label: 'GGZ of psycholoog buiten basisdekking', hint: 'Alleen meenemen als je zelf kosten verwacht', step: '0.01' },
+  { key: 'hulpmiddelen', label: 'Hulpmiddelen', hint: 'Bijvoorbeeld steunzolen, braces of andere hulpmiddelen', step: '0.01' },
+  { key: 'medicijnen', label: 'Medicijnen', hint: 'Kosten die je verwacht zelf te betalen', step: '0.01' },
+  { key: 'psychologischeZorg', label: 'Psychologische zorg', hint: 'Alleen meenemen als je zelf kosten verwacht', step: '0.01' },
   { key: 'dieet', label: 'Diëtist of voedingsadvies', hint: 'Jaarbedrag dat je verwacht zelf te betalen', step: '0.01' },
-  { key: 'overigOnderEigenRisico', label: 'Overige zorg onder eigen risico', hint: 'Bijvoorbeeld ziekenhuis, specialist of medicijnen', step: '0.01' }
+  { key: 'overigOnderEigenRisico', label: 'Overige zorg onder eigen risico', hint: 'Bijvoorbeeld ziekenhuis, specialist of andere basiszorg', step: '0.01' }
 ];
 
 const polisVelden = [
   { key: 'maandpremie', label: 'Maandpremie', kind: 'currency' },
   { key: 'eigenRisico', label: 'Eigen risico', kind: 'currency' },
-  { key: 'tandartsVergoeding', label: 'Tandartsvergoeding per jaar', kind: 'currency' },
-  { key: 'fysioSessiesVergoed', label: 'Fysiosessies vergoed', kind: 'number' },
-  { key: 'brilVergoeding', label: 'Brilvergoeding per jaar', kind: 'currency' },
+  { key: 'tandartsVergoeding', label: 'Tandarts en mondzorg per jaar', kind: 'currency' },
+  { key: 'fysioSessiesVergoed', label: 'Fysiotherapie of beweegzorg vergoed', kind: 'number' },
+  { key: 'brilVergoeding', label: 'Brillen en lenzen per jaar', kind: 'currency' },
   { key: 'alternatiefMaxVergoeding', label: 'Alternatief maximum per jaar', kind: 'currency' },
   { key: 'alternatiefPerSessie', label: 'Alternatief per behandeling', kind: 'currency' },
-  { key: 'ggzVergoeding', label: 'GGZ-vergoeding per jaar', kind: 'currency' },
+  { key: 'hulpmiddelenVergoeding', label: 'Hulpmiddelenvergoeding per jaar', kind: 'currency' },
+  { key: 'medicijnenVergoeding', label: 'Medicijnenvergoeding per jaar', kind: 'currency' },
+  { key: 'psychologischeZorgVergoeding', label: 'Psychologische zorg per jaar', kind: 'currency' },
   { key: 'dieetVergoeding', label: 'Diëtistvergoeding per jaar', kind: 'currency' }
 ];
 
 const toNumber = (value) => {
   const parsed = Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const normalizeCategorieen = (input) => {
+  if (!Array.isArray(input)) return alleCategorieIds;
+
+  const normalized = input.filter((id) => alleCategorieIds.includes(id));
+  return normalized.length ? normalized : alleCategorieIds;
 };
 
 const safeLoadState = () => {
@@ -102,6 +216,7 @@ const safeLoadState = () => {
 
     return {
       zorggebruik: { ...defaultState.zorggebruik, ...parsed.zorggebruik },
+      actieveCategorieen: normalizeCategorieen(parsed.actieveCategorieen),
       verzekeringen: parsed.verzekeringen.map((verzekering, index) => ({
         ...createInsurance(index + 1, `Polis ${index + 1}`),
         ...verzekering
@@ -112,24 +227,53 @@ const safeLoadState = () => {
   }
 };
 
-const berekenKosten = (verzekering, zorggebruik) => {
+const berekenKosten = (verzekering, zorggebruik, actieveCategorieen) => {
+  const actief = new Set(actieveCategorieen);
   const jaarPremie = verzekering.maandpremie * 12;
 
-  const tandartsEigen = Math.max(0, zorggebruik.tandarts - verzekering.tandartsVergoeding);
-  const fysioTotaal = zorggebruik.fysioSessies * zorggebruik.fysioKostenPerSessie;
-  const fysioVergoed = Math.min(zorggebruik.fysioSessies, verzekering.fysioSessiesVergoed) * zorggebruik.fysioKostenPerSessie;
+  const tandartsEigen = actief.has('tandarts')
+    ? Math.max(0, zorggebruik.tandarts - verzekering.tandartsVergoeding)
+    : 0;
+  const fysioTotaal = actief.has('fysio') ? zorggebruik.fysioSessies * zorggebruik.fysioKostenPerSessie : 0;
+  const fysioVergoed = actief.has('fysio')
+    ? Math.min(zorggebruik.fysioSessies, verzekering.fysioSessiesVergoed) * zorggebruik.fysioKostenPerSessie
+    : 0;
   const fysioEigen = Math.max(0, fysioTotaal - fysioVergoed);
-  const brilEigen = Math.max(0, zorggebruik.bril - verzekering.brilVergoeding);
-  const alternatiefTotaal = zorggebruik.alternatiefSessies * zorggebruik.alternatiefKostenPerSessie;
-  const alternatiefPerSessie = Math.min(zorggebruik.alternatiefKostenPerSessie, verzekering.alternatiefPerSessie) * zorggebruik.alternatiefSessies;
+  const brilEigen = actief.has('bril')
+    ? Math.max(0, zorggebruik.bril - verzekering.brilVergoeding)
+    : 0;
+  const alternatiefTotaal = actief.has('alternatief')
+    ? zorggebruik.alternatiefSessies * zorggebruik.alternatiefKostenPerSessie
+    : 0;
+  const alternatiefPerSessie = actief.has('alternatief')
+    ? Math.min(zorggebruik.alternatiefKostenPerSessie, verzekering.alternatiefPerSessie) *
+      zorggebruik.alternatiefSessies
+    : 0;
   const alternatiefVergoed = Math.min(alternatiefPerSessie, verzekering.alternatiefMaxVergoeding);
   const alternatiefEigen = Math.max(0, alternatiefTotaal - alternatiefVergoed);
-  const ggzEigen = Math.max(0, zorggebruik.ggz - verzekering.ggzVergoeding);
-  const dieetEigen = Math.max(0, zorggebruik.dieet - verzekering.dieetVergoeding);
-  const eigenRisicoGebruikt = Math.min(zorggebruik.overigOnderEigenRisico, verzekering.eigenRisico);
+  const hulpmiddelenEigen = actief.has('hulpmiddelen')
+    ? Math.max(0, zorggebruik.hulpmiddelen - verzekering.hulpmiddelenVergoeding)
+    : 0;
+  const medicijnenEigen = actief.has('medicijnen')
+    ? Math.max(0, zorggebruik.medicijnen - verzekering.medicijnenVergoeding)
+    : 0;
+  const psychologischeZorgEigen = actief.has('psychologische-zorg')
+    ? Math.max(0, zorggebruik.psychologischeZorg - verzekering.psychologischeZorgVergoeding)
+    : 0;
+  const dieetEigen = actief.has('dieet') ? Math.max(0, zorggebruik.dieet - verzekering.dieetVergoeding) : 0;
+  const eigenRisicoGebruikt = actief.has('overig')
+    ? Math.min(zorggebruik.overigOnderEigenRisico, verzekering.eigenRisico)
+    : 0;
 
   const eigenKostenAanvullend =
-    tandartsEigen + fysioEigen + brilEigen + alternatiefEigen + ggzEigen + dieetEigen;
+    tandartsEigen +
+    fysioEigen +
+    brilEigen +
+    alternatiefEigen +
+    hulpmiddelenEigen +
+    medicijnenEigen +
+    psychologischeZorgEigen +
+    dieetEigen;
   const totaal = jaarPremie + eigenKostenAanvullend + eigenRisicoGebruikt;
 
   return {
@@ -142,7 +286,9 @@ const berekenKosten = (verzekering, zorggebruik) => {
       fysio: fysioEigen,
       bril: brilEigen,
       alternatief: alternatiefEigen,
-      ggz: ggzEigen,
+      hulpmiddelen: hulpmiddelenEigen,
+      medicijnen: medicijnenEigen,
+      psychologischeZorg: psychologischeZorgEigen,
       dieet: dieetEigen
     }
   };
@@ -150,15 +296,28 @@ const berekenKosten = (verzekering, zorggebruik) => {
 
 const formatEuro = (value) => euro.format(value || 0);
 
-const renderPrintHtml = ({ zorggebruik, resultaten, goedkoopste }) => {
+const renderPrintHtml = ({ zorggebruik, resultaten, goedkoopste, actieveCategorieen }) => {
+  const actief = new Set(actieveCategorieen);
   const items = [
-    ['Tandarts', zorggebruik.tandarts],
-    ['Fysiosessies', zorggebruik.fysioSessies ? `${zorggebruik.fysioSessies} x ${formatEuro(zorggebruik.fysioKostenPerSessie)}` : 0],
-    ['Bril of lenzen', zorggebruik.bril],
-    ['Alternatieve zorg', zorggebruik.alternatiefSessies ? `${zorggebruik.alternatiefSessies} x ${formatEuro(zorggebruik.alternatiefKostenPerSessie)}` : 0],
-    ['GGZ of psycholoog', zorggebruik.ggz],
-    ['Diëtist', zorggebruik.dieet],
-    ['Overige zorg onder eigen risico', zorggebruik.overigOnderEigenRisico]
+    ['Tandarts', actief.has('tandarts') ? zorggebruik.tandarts : 0],
+    [
+      'Fysiosessies',
+      actief.has('fysio') && zorggebruik.fysioSessies
+        ? `${zorggebruik.fysioSessies} x ${formatEuro(zorggebruik.fysioKostenPerSessie)}`
+        : 0
+    ],
+    ['Bril of lenzen', actief.has('bril') ? zorggebruik.bril : 0],
+    [
+      'Alternatieve zorg',
+      actief.has('alternatief') && zorggebruik.alternatiefSessies
+        ? `${zorggebruik.alternatiefSessies} x ${formatEuro(zorggebruik.alternatiefKostenPerSessie)}`
+        : 0
+    ],
+    ['Hulpmiddelen', actief.has('hulpmiddelen') ? zorggebruik.hulpmiddelen : 0],
+    ['Medicijnen', actief.has('medicijnen') ? zorggebruik.medicijnen : 0],
+    ['Psychologische zorg', actief.has('psychologische-zorg') ? zorggebruik.psychologischeZorg : 0],
+    ['Diëtist', actief.has('dieet') ? zorggebruik.dieet : 0],
+    ['Overige zorg onder eigen risico', actief.has('overig') ? zorggebruik.overigOnderEigenRisico : 0]
   ]
     .filter(([, value]) => value !== 0 && value !== '0 x € 0')
     .map(
@@ -228,7 +387,9 @@ const renderPrintHtml = ({ zorggebruik, resultaten, goedkoopste }) => {
 export default function App() {
   const [storedState] = useState(() => safeLoadState());
   const [zorggebruik, setZorggebruik] = useState(storedState.zorggebruik);
+  const [actieveCategorieen, setActieveCategorieen] = useState(storedState.actieveCategorieen);
   const [verzekeringen, setVerzekeringen] = useState(storedState.verzekeringen);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -237,18 +398,21 @@ export default function App() {
         STORAGE_KEY,
         JSON.stringify({
           zorggebruik,
+          actieveCategorieen,
           verzekeringen
         })
       );
     } catch (error) {
       // Ignore storage issues and let the app keep working in memory.
     }
-  }, [zorggebruik, verzekeringen]);
+  }, [zorggebruik, actieveCategorieen, verzekeringen]);
+
+  const actieveCategorieSet = new Set(actieveCategorieen);
 
   const sortedResultaten = verzekeringen
     .map((verzekering) => ({
       verzekering,
-      kosten: berekenKosten(verzekering, zorggebruik)
+      kosten: berekenKosten(verzekering, zorggebruik, actieveCategorieen)
     }))
     .sort((a, b) => a.kosten.totaal - b.kosten.totaal);
 
@@ -260,6 +424,20 @@ export default function App() {
   }));
 
   const goedkoopste = resultaten[0] ?? null;
+
+  const zichtbareZorgVelden = zorgVelden.filter((veld) =>
+    categorieen.some(
+      (categorie) => actieveCategorieSet.has(categorie.id) && categorie.zorgKeys.includes(veld.key)
+    )
+  );
+
+  const zichtbarePolisVelden = polisVelden.filter((veld) => {
+    if (veld.key === 'maandpremie') return true;
+
+    return categorieen.some(
+      (categorie) => actieveCategorieSet.has(categorie.id) && categorie.polisKeys.includes(veld.key)
+    );
+  });
 
   const updateZorggebruik = (key, value) => {
     setZorggebruik((current) => ({
@@ -291,11 +469,23 @@ export default function App() {
     setVerzekeringen((current) => current.filter((verzekering) => verzekering.id !== id));
   };
 
+  const toggleCategorie = (categorieId) => {
+    setActieveCategorieen((current) => {
+      if (current.includes(categorieId)) {
+        if (current.length === 1) return current;
+        return current.filter((id) => id !== categorieId);
+      }
+
+      return [...current, categorieId];
+    });
+  };
+
   const exporteerJson = () => {
     const payload = {
       versie: 1,
       datum: new Date().toISOString(),
       zorggebruik,
+      actieveCategorieen,
       verzekeringen
     };
 
@@ -324,6 +514,7 @@ export default function App() {
       }
 
       setZorggebruik({ ...defaultState.zorggebruik, ...parsed.zorggebruik });
+      setActieveCategorieen(normalizeCategorieen(parsed.actieveCategorieen));
       setVerzekeringen(
         parsed.verzekeringen.map((verzekering, index) => ({
           ...createInsurance(index + 1, `Polis ${index + 1}`),
@@ -373,11 +564,12 @@ export default function App() {
     );
 
     printDocument.open();
-    printDocument.write(
+        printDocument.write(
       renderPrintHtml({
         zorggebruik,
         resultaten,
-        goedkoopste
+        goedkoopste,
+        actieveCategorieen
       })
     );
     printDocument.close();
@@ -403,6 +595,16 @@ export default function App() {
             <button type="button" className="primary-button" onClick={exporteerJson}>
               <Download size={18} />
               Exporteer JSON
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => setSettingsOpen((current) => !current)}
+              aria-expanded={settingsOpen}
+              aria-controls="instellingen-paneel"
+            >
+              <Settings2 size={18} />
+              Instellingen
             </button>
             <button
               type="button"
@@ -447,11 +649,65 @@ export default function App() {
         </aside>
       </section>
 
+      {settingsOpen ? (
+        <section className="settings-panel" id="instellingen-paneel">
+          <div className="settings-header">
+            <div>
+              <p className="section-kicker">Instellingen</p>
+              <h2>Kies welke zorgkosten je wilt meenemen</h2>
+            </div>
+            <p>Gebaseerd op de meest gezochte vergoedingen van VGZ. Wat je hier uitzet, verdwijnt uit de invoer, uit de polisvelden en uit de berekening.</p>
+          </div>
+          <div className="settings-groups">
+            <div>
+              <p className="settings-group-label">VGZ meest gezocht</p>
+              <div className="settings-grid">
+                {categorieen
+                  .filter((categorie) => categorie.groep === 'vgz')
+                  .map((categorie) => (
+                    <label key={categorie.id} className="toggle-card">
+                      <input
+                        type="checkbox"
+                        checked={actieveCategorieSet.has(categorie.id)}
+                        onChange={() => toggleCategorie(categorie.id)}
+                      />
+                      <div>
+                        <strong>{categorie.label}</strong>
+                        <p>{categorie.beschrijving}</p>
+                      </div>
+                    </label>
+                  ))}
+              </div>
+            </div>
+            <div>
+              <p className="settings-group-label">Praktische extra's</p>
+              <div className="settings-grid">
+                {categorieen
+                  .filter((categorie) => categorie.groep === 'extra')
+                  .map((categorie) => (
+                    <label key={categorie.id} className="toggle-card">
+                      <input
+                        type="checkbox"
+                        checked={actieveCategorieSet.has(categorie.id)}
+                        onChange={() => toggleCategorie(categorie.id)}
+                      />
+                      <div>
+                        <strong>{categorie.label}</strong>
+                        <p>{categorie.beschrijving}</p>
+                      </div>
+                    </label>
+                  ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <section className="workflow-strip" aria-label="Stappen">
         <a href="#step-zorggebruik" className="workflow-card">
           <span className="section-kicker">Stap 1</span>
           <strong>Vul je zorggebruik in</strong>
-          <p>Begin met je inschatting van tandarts, fysio, bril, GGZ en overige zorg onder eigen risico.</p>
+          <p>Begin met je inschatting van zorgkosten uit de gekozen VGZ-categorieën en eventuele extra's.</p>
         </a>
         <a href="#step-polissen" className="workflow-card">
           <span className="section-kicker">Stap 2</span>
@@ -470,11 +726,11 @@ export default function App() {
           <div className="step-intro">
             <p className="section-kicker">Stap 1</p>
             <h2>Verwacht zorggebruik</h2>
-            <p>Vul eerst in wat je komend jaar denkt te gebruiken. De vergelijking rechts rekent daar meteen mee mee.</p>
+            <p>Vul eerst in wat je komend jaar denkt te gebruiken. De vergelijking rechts rekent direct mee met de categorieën die je in instellingen aan hebt gezet.</p>
           </div>
           <article className="panel">
             <div className="field-grid">
-              {zorgVelden.map((veld) => (
+              {zichtbareZorgVelden.map((veld) => (
                 <label key={veld.key} className={veld.key === 'overigOnderEigenRisico' ? 'field wide' : 'field'}>
                   <span>{veld.label}</span>
                   <input
@@ -527,7 +783,7 @@ export default function App() {
                 </div>
 
                 <div className="field-grid policy-grid">
-                  {polisVelden.map((veld) => (
+                  {zichtbarePolisVelden.map((veld) => (
                     <label key={veld.key} className="field">
                       <span>{veld.label}</span>
                       <input
@@ -626,12 +882,16 @@ export default function App() {
                 <details className="breakdown">
                   <summary>Bekijk opbouw van de eigen kosten</summary>
                   <div className="breakdown-grid">
-                    <div>Tandarts: {formatEuro(resultaat.kosten.breakdown.tandarts)}</div>
-                    <div>Fysio: {formatEuro(resultaat.kosten.breakdown.fysio)}</div>
-                    <div>Bril: {formatEuro(resultaat.kosten.breakdown.bril)}</div>
-                    <div>Alternatief: {formatEuro(resultaat.kosten.breakdown.alternatief)}</div>
-                    <div>GGZ: {formatEuro(resultaat.kosten.breakdown.ggz)}</div>
-                    <div>Diëtist: {formatEuro(resultaat.kosten.breakdown.dieet)}</div>
+                    {categorieen
+                      .filter(
+                        (categorie) =>
+                          categorie.breakdownKey && actieveCategorieSet.has(categorie.id)
+                      )
+                      .map((categorie) => (
+                        <div key={categorie.id}>
+                          {categorie.label}: {formatEuro(resultaat.kosten.breakdown[categorie.breakdownKey])}
+                        </div>
+                      ))}
                   </div>
                 </details>
               </article>

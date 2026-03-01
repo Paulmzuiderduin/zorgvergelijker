@@ -5,8 +5,11 @@ test('smoke: comparator renders and updates ranking', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Zorgvergelijker voor je echte jaarlasten' })).toBeVisible();
   await expect(page.getByText('Meest voordelig voor deze inschatting')).toBeVisible();
+  await page.getByRole('button', { name: 'Instellingen' }).click();
+  await page.getByRole('checkbox', { name: 'Hulpmiddelen' }).uncheck();
+  await expect(page.getByRole('spinbutton', { name: 'Hulpmiddelen' })).toHaveCount(0);
 
-  await page.getByLabel('Tandartskosten per jaar').fill('400');
+  await page.locator('#step-zorggebruik').getByRole('spinbutton', { name: 'Tandarts en mondzorg per jaar' }).fill('400');
   await page.getByRole('button', { name: 'Polis toevoegen' }).click();
   await expect(page.getByTestId('result-card')).toHaveCount(3);
 
