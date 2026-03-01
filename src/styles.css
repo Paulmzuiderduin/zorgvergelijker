@@ -80,7 +80,7 @@ button {
 .panel,
 .insurance-card,
 .result-card,
-.info-strip {
+.workflow-card {
   position: relative;
   z-index: 1;
   border: 1px solid var(--border);
@@ -199,25 +199,47 @@ button {
   gap: 0.55rem;
 }
 
-.info-strip {
+.workflow-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
   margin-top: 1rem;
+}
+
+.workflow-card {
   border-radius: 1.4rem;
-  padding: 1rem 1.2rem;
+  padding: 1.15rem 1.2rem;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
-.info-strip strong {
+.workflow-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(15, 118, 110, 0.28);
+}
+
+.workflow-card strong {
   display: block;
-  margin-top: 0.25rem;
+  margin-top: 0.35rem;
+  font-size: 1.2rem;
 }
 
-.content-grid {
+.workflow-card p {
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.workspace-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+  grid-template-columns: minmax(250px, 0.9fr) minmax(360px, 1.25fr) minmax(300px, 1fr);
   gap: 1rem;
   margin-top: 1.25rem;
+  align-items: start;
 }
 
 .panel,
@@ -225,6 +247,36 @@ button {
 .result-card {
   border-radius: 1.6rem;
   padding: 1.35rem;
+}
+
+.step-column {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.step-intro {
+  padding: 0.2rem 0.15rem 0;
+}
+
+.step-intro h2 {
+  margin: 0.3rem 0 0.45rem;
+  font-size: 1.55rem;
+}
+
+.step-intro p:last-child {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.step-intro-with-action {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.step-button {
+  justify-self: start;
 }
 
 .panel-heading,
@@ -246,13 +298,12 @@ button {
 
 .field-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 0.95rem;
-  margin-top: 1.2rem;
 }
 
 .policy-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .field {
@@ -314,7 +365,6 @@ button {
 .insight-stack {
   display: grid;
   gap: 0.9rem;
-  margin-top: 1.2rem;
 }
 
 .insight-card {
@@ -433,8 +483,8 @@ button {
 
 @media (max-width: 960px) {
   .hero-card,
-  .content-grid,
-  .info-strip,
+  .workflow-strip,
+  .workspace-grid,
   .policy-grid,
   .metric-row,
   .breakdown-grid {
@@ -443,7 +493,8 @@ button {
 
   .result-topline,
   .section-header,
-  .insurance-header {
+  .insurance-header,
+  .step-intro-with-action {
     flex-direction: column;
   }
 
@@ -461,13 +512,10 @@ button {
   .hero-card,
   .panel,
   .insurance-card,
-  .result-card {
+  .result-card,
+  .workflow-card {
     border-radius: 1.35rem;
     padding: 1rem;
-  }
-
-  .field-grid {
-    grid-template-columns: 1fr;
   }
 
   .hero-copy h1 {
@@ -482,6 +530,10 @@ button {
   .secondary-button {
     width: 100%;
   }
+
+  .step-button {
+    width: 100%;
+  }
 }
 
 @media print {
@@ -491,7 +543,7 @@ button {
 
   .ambient,
   .hero-actions,
-  .section-header .primary-button,
+  .workflow-strip,
   .icon-button {
     display: none !important;
   }
@@ -505,7 +557,7 @@ button {
   .panel,
   .insurance-card,
   .result-card,
-  .info-strip {
+  .workflow-card {
     box-shadow: none;
     background: white;
     backdrop-filter: none;

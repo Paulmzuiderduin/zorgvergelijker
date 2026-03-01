@@ -5,7 +5,6 @@ import {
   FileText,
   Plus,
   ShieldCheck,
-  Sparkles,
   Trash2,
   Upload
 } from 'lucide-react';
@@ -340,22 +339,48 @@ export default function App() {
   };
 
   const exporteerPrint = () => {
-    const printWindow = window.open('', '_blank', 'noopener,noreferrer');
-    if (!printWindow) {
-      window.alert('Sta pop-ups toe om een printbare PDF te openen.');
+    const frame = document.createElement('iframe');
+    frame.setAttribute('aria-hidden', 'true');
+    frame.style.position = 'fixed';
+    frame.style.right = '0';
+    frame.style.bottom = '0';
+    frame.style.width = '0';
+    frame.style.height = '0';
+    frame.style.border = '0';
+    document.body.appendChild(frame);
+
+    const printWindow = frame.contentWindow;
+    const printDocument = printWindow?.document;
+
+    if (!printWindow || !printDocument) {
+      frame.remove();
+      window.alert('Printweergave kon niet worden geopend.');
       return;
     }
 
-    printWindow.document.write(
+    const cleanup = () => {
+      window.setTimeout(() => frame.remove(), 1200);
+    };
+
+    frame.addEventListener(
+      'load',
+      () => {
+        printWindow.focus();
+        printWindow.print();
+        cleanup();
+      },
+      { once: true }
+    );
+
+    printDocument.open();
+    printDocument.write(
       renderPrintHtml({
         zorggebruik,
         resultaten,
         goedkoopste
       })
     );
-    printWindow.document.close();
-    printWindow.focus();
-    window.setTimeout(() => printWindow.print(), 300);
+    printDocument.close();
   };
 
   return (
@@ -422,197 +447,197 @@ export default function App() {
         </aside>
       </section>
 
-      <section className="info-strip">
-        <div>
-          <span className="info-label">Domein</span>
-          <strong>zorgvergelijker.paulzuiderduin.com</strong>
-        </div>
-        <div>
-          <span className="info-label">MVP</span>
-          <strong>Handmatige invoer, geen accounts, geen API</strong>
-        </div>
-        <div>
-          <span className="info-label">Doel</span>
-          <strong>Snel zien wat jij over het hele jaar kwijt bent</strong>
-        </div>
+      <section className="workflow-strip" aria-label="Stappen">
+        <a href="#step-zorggebruik" className="workflow-card">
+          <span className="section-kicker">Stap 1</span>
+          <strong>Vul je zorggebruik in</strong>
+          <p>Begin met je inschatting van tandarts, fysio, bril, GGZ en overige zorg onder eigen risico.</p>
+        </a>
+        <a href="#step-polissen" className="workflow-card">
+          <span className="section-kicker">Stap 2</span>
+          <strong>Voeg je polissen toe</strong>
+          <p>Zet je huidige verzekering en alternatieven naast elkaar met premie en vergoedingen.</p>
+        </a>
+        <a href="#step-vergelijking" className="workflow-card">
+          <span className="section-kicker">Stap 3</span>
+          <strong>Vergelijk de jaarlasten</strong>
+          <p>Bekijk direct welke polis onderaan de streep het voordeligst uitkomt voor jouw situatie.</p>
+        </a>
       </section>
 
-      <section className="content-grid">
-        <article className="panel">
-          <div className="panel-heading">
-            <div>
-              <p className="section-kicker">Stap 1</p>
-              <h2>Verwacht zorggebruik</h2>
-            </div>
-            <Sparkles size={18} />
+      <section className="workspace-grid">
+        <section className="step-column" id="step-zorggebruik">
+          <div className="step-intro">
+            <p className="section-kicker">Stap 1</p>
+            <h2>Verwacht zorggebruik</h2>
+            <p>Vul eerst in wat je komend jaar denkt te gebruiken. De vergelijking rechts rekent daar meteen mee mee.</p>
           </div>
-          <div className="field-grid">
-            {zorgVelden.map((veld) => (
-              <label key={veld.key} className={veld.key === 'overigOnderEigenRisico' ? 'field wide' : 'field'}>
-                <span>{veld.label}</span>
-                <input
-                  type="number"
-                  min="0"
-                  step={veld.step}
-                  value={zorggebruik[veld.key]}
-                  onChange={(event) => updateZorggebruik(veld.key, event.target.value)}
-                />
-                <small>{veld.hint}</small>
-              </label>
-            ))}
-          </div>
-        </article>
-
-        <article className="panel insight-panel">
-          <div className="panel-heading">
-            <div>
-              <p className="section-kicker">Analyse</p>
-              <h2>Snelle lezing</h2>
-            </div>
-          </div>
-          <div className="insight-stack">
-            <div className="insight-card highlight">
-              <span>Goedkoopste keuze</span>
-              <strong>{goedkoopste ? goedkoopste.verzekering.naam : 'Nog niet beschikbaar'}</strong>
-              <p>
-                {goedkoopste
-                  ? `Geschatte jaarlast: ${formatEuro(goedkoopste.kosten.totaal)}`
-                  : 'Vul een polis in om direct een ranglijst te zien.'}
-              </p>
-            </div>
-            <div className="insight-card">
-              <span>Aantal polissen</span>
-              <strong>{verzekeringen.length}</strong>
-              <p>Je kunt onbeperkt extra polissen toevoegen voor dezelfde zorginschatting.</p>
-            </div>
-            <div className="insight-card">
-              <span>Belangrijk</span>
-              <strong>Geen advies, wel rekenhulp</strong>
-              <p>Deze tool rekent alleen met wat jij invult en houdt geen rekening met elke polisuitzondering.</p>
-            </div>
-          </div>
-        </article>
-      </section>
-
-      <section className="section-header">
-        <div>
-          <p className="section-kicker">Stap 2</p>
-          <h2>Polissen invoeren</h2>
-        </div>
-        <button type="button" className="primary-button" onClick={voegVerzekeringToe}>
-          <Plus size={18} />
-          Polis toevoegen
-        </button>
-      </section>
-
-      <section className="insurance-stack">
-        {verzekeringen.map((verzekering) => (
-          <article key={verzekering.id} className="insurance-card">
-            <div className="insurance-header">
-              <label className="field grow">
-                <span>Naam van de polis</span>
-                <input
-                  type="text"
-                  value={verzekering.naam}
-                  onChange={(event) => updateVerzekering(verzekering.id, 'naam', event.target.value)}
-                />
-              </label>
-              <button
-                type="button"
-                className="icon-button"
-                onClick={() => verwijderVerzekering(verzekering.id)}
-                disabled={verzekeringen.length === 1}
-                aria-label={`Verwijder ${verzekering.naam}`}
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
-
-            <div className="field-grid policy-grid">
-              {polisVelden.map((veld) => (
-                <label key={veld.key} className="field">
+          <article className="panel">
+            <div className="field-grid">
+              {zorgVelden.map((veld) => (
+                <label key={veld.key} className={veld.key === 'overigOnderEigenRisico' ? 'field wide' : 'field'}>
                   <span>{veld.label}</span>
                   <input
                     type="number"
                     min="0"
-                    step={veld.kind === 'number' ? '1' : '0.01'}
-                    value={verzekering[veld.key]}
-                    onChange={(event) => updateVerzekering(verzekering.id, veld.key, event.target.value)}
+                    step={veld.step}
+                    value={zorggebruik[veld.key]}
+                    onChange={(event) => updateZorggebruik(veld.key, event.target.value)}
                   />
+                  <small>{veld.hint}</small>
                 </label>
               ))}
-              <label className="field wide">
-                <span>Notitie bij deze polis</span>
-                <textarea
-                  rows="3"
-                  value={verzekering.notitie}
-                  onChange={(event) => updateVerzekering(verzekering.id, 'notitie', event.target.value)}
-                  placeholder="Bijvoorbeeld: tandarts alleen na wachttijd, alternatieve zorg alleen bij aangesloten behandelaars."
-                />
-              </label>
             </div>
           </article>
-        ))}
-      </section>
+        </section>
 
-      <section className="section-header">
-        <div>
-          <p className="section-kicker">Stap 3</p>
-          <h2>Vergelijking</h2>
-        </div>
-      </section>
-
-      <section className="results-grid">
-        {resultaten.map((resultaat, index) => (
-          <article
-            key={resultaat.verzekering.id}
-            className={`result-card ${index === 0 ? 'is-best' : ''}`}
-            data-testid="result-card"
-          >
-            <div className="result-topline">
-              <div>
-                <p className="result-rank">{index === 0 ? 'Meest voordelig voor deze inschatting' : `Plaats ${index + 1}`}</p>
-                <h3>{resultaat.verzekering.naam}</h3>
-              </div>
-              <div className="result-total">{formatEuro(resultaat.kosten.totaal)}</div>
+        <section className="step-column" id="step-polissen">
+          <div className="step-intro step-intro-with-action">
+            <div>
+              <p className="section-kicker">Stap 2</p>
+              <h2>Polissen invoeren</h2>
+              <p>Voeg je huidige verzekering en alternatieven toe. Je kunt zoveel polissen vergelijken als je wilt.</p>
             </div>
+            <button type="button" className="primary-button step-button" onClick={voegVerzekeringToe}>
+              <Plus size={18} />
+              Polis toevoegen
+            </button>
+          </div>
+          <section className="insurance-stack">
+            {verzekeringen.map((verzekering) => (
+              <article key={verzekering.id} className="insurance-card">
+                <div className="insurance-header">
+                  <label className="field grow">
+                    <span>Naam van de polis</span>
+                    <input
+                      type="text"
+                      value={verzekering.naam}
+                      onChange={(event) => updateVerzekering(verzekering.id, 'naam', event.target.value)}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="icon-button"
+                    onClick={() => verwijderVerzekering(verzekering.id)}
+                    disabled={verzekeringen.length === 1}
+                    aria-label={`Verwijder ${verzekering.naam}`}
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
 
-            <div className="metric-row">
-              <div className="metric-box">
-                <span>Jaarpremie</span>
-                <strong>{formatEuro(resultaat.kosten.jaarPremie)}</strong>
+                <div className="field-grid policy-grid">
+                  {polisVelden.map((veld) => (
+                    <label key={veld.key} className="field">
+                      <span>{veld.label}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step={veld.kind === 'number' ? '1' : '0.01'}
+                        value={verzekering[veld.key]}
+                        onChange={(event) => updateVerzekering(verzekering.id, veld.key, event.target.value)}
+                      />
+                    </label>
+                  ))}
+                  <label className="field wide">
+                    <span>Notitie bij deze polis</span>
+                    <textarea
+                      rows="3"
+                      value={verzekering.notitie}
+                      onChange={(event) => updateVerzekering(verzekering.id, 'notitie', event.target.value)}
+                      placeholder="Bijvoorbeeld: tandarts alleen na wachttijd, alternatieve zorg alleen bij aangesloten behandelaars."
+                    />
+                  </label>
+                </div>
+              </article>
+            ))}
+          </section>
+        </section>
+
+        <section className="step-column" id="step-vergelijking">
+          <div className="step-intro">
+            <p className="section-kicker">Stap 3</p>
+            <h2>Vergelijking</h2>
+            <p>Hier zie je meteen welke polis het voordeligst uitpakt op basis van jouw eigen invoer.</p>
+          </div>
+          <article className="panel insight-panel">
+            <div className="insight-stack">
+              <div className="insight-card highlight">
+                <span>Goedkoopste keuze</span>
+                <strong>{goedkoopste ? goedkoopste.verzekering.naam : 'Nog niet beschikbaar'}</strong>
+                <p>
+                  {goedkoopste
+                    ? `Geschatte jaarlast: ${formatEuro(goedkoopste.kosten.totaal)}`
+                    : 'Vul een polis in om direct een ranglijst te zien.'}
+                </p>
               </div>
-              <div className="metric-box">
-                <span>Eigen risico gebruikt</span>
-                <strong>{formatEuro(resultaat.kosten.eigenRisicoGebruikt)}</strong>
+              <div className="insight-card">
+                <span>Aantal polissen</span>
+                <strong>{verzekeringen.length}</strong>
+                <p>Je kunt onbeperkt extra polissen toevoegen voor dezelfde zorginschatting.</p>
               </div>
-              <div className="metric-box">
-                <span>Eigen kosten aanvullend</span>
-                <strong>{formatEuro(resultaat.kosten.eigenKostenAanvullend)}</strong>
+              <div className="insight-card">
+                <span>Belangrijk</span>
+                <strong>Geen advies, wel rekenhulp</strong>
+                <p>Deze tool rekent alleen met wat jij invult en houdt geen rekening met elke polisuitzondering.</p>
               </div>
             </div>
-
-            <div className="difference-bar">
-              {index === 0 ? (
-                <span>Referentiepunt voor deze vergelijking</span>
-              ) : (
-                <span>{formatEuro(resultaat.verschilMetGoedkoopste)} duurder dan de goedkoopste optie</span>
-              )}
-            </div>
-
-            <details className="breakdown">
-              <summary>Bekijk opbouw van de eigen kosten</summary>
-              <div className="breakdown-grid">
-                <div>Tandarts: {formatEuro(resultaat.kosten.breakdown.tandarts)}</div>
-                <div>Fysio: {formatEuro(resultaat.kosten.breakdown.fysio)}</div>
-                <div>Bril: {formatEuro(resultaat.kosten.breakdown.bril)}</div>
-                <div>Alternatief: {formatEuro(resultaat.kosten.breakdown.alternatief)}</div>
-                <div>GGZ: {formatEuro(resultaat.kosten.breakdown.ggz)}</div>
-                <div>Diëtist: {formatEuro(resultaat.kosten.breakdown.dieet)}</div>
-              </div>
-            </details>
           </article>
-        ))}
+          <section className="results-grid">
+            {resultaten.map((resultaat, index) => (
+              <article
+                key={resultaat.verzekering.id}
+                className={`result-card ${index === 0 ? 'is-best' : ''}`}
+                data-testid="result-card"
+              >
+                <div className="result-topline">
+                  <div>
+                    <p className="result-rank">
+                      {index === 0 ? 'Meest voordelig voor deze inschatting' : `Plaats ${index + 1}`}
+                    </p>
+                    <h3>{resultaat.verzekering.naam}</h3>
+                  </div>
+                  <div className="result-total">{formatEuro(resultaat.kosten.totaal)}</div>
+                </div>
+
+                <div className="metric-row">
+                  <div className="metric-box">
+                    <span>Jaarpremie</span>
+                    <strong>{formatEuro(resultaat.kosten.jaarPremie)}</strong>
+                  </div>
+                  <div className="metric-box">
+                    <span>Eigen risico gebruikt</span>
+                    <strong>{formatEuro(resultaat.kosten.eigenRisicoGebruikt)}</strong>
+                  </div>
+                  <div className="metric-box">
+                    <span>Eigen kosten aanvullend</span>
+                    <strong>{formatEuro(resultaat.kosten.eigenKostenAanvullend)}</strong>
+                  </div>
+                </div>
+
+                <div className="difference-bar">
+                  {index === 0 ? (
+                    <span>Referentiepunt voor deze vergelijking</span>
+                  ) : (
+                    <span>{formatEuro(resultaat.verschilMetGoedkoopste)} duurder dan de goedkoopste optie</span>
+                  )}
+                </div>
+
+                <details className="breakdown">
+                  <summary>Bekijk opbouw van de eigen kosten</summary>
+                  <div className="breakdown-grid">
+                    <div>Tandarts: {formatEuro(resultaat.kosten.breakdown.tandarts)}</div>
+                    <div>Fysio: {formatEuro(resultaat.kosten.breakdown.fysio)}</div>
+                    <div>Bril: {formatEuro(resultaat.kosten.breakdown.bril)}</div>
+                    <div>Alternatief: {formatEuro(resultaat.kosten.breakdown.alternatief)}</div>
+                    <div>GGZ: {formatEuro(resultaat.kosten.breakdown.ggz)}</div>
+                    <div>Diëtist: {formatEuro(resultaat.kosten.breakdown.dieet)}</div>
+                  </div>
+                </details>
+              </article>
+            ))}
+          </section>
+        </section>
       </section>
     </main>
   );
