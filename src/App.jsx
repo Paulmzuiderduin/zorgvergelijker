@@ -808,7 +808,7 @@ export default function App() {
   const [verzekeringen, setVerzekeringen] = useState(storedState.verzekeringen);
   const [actieveStap, setActieveStap] = useState('zorggebruik');
   const [openPolissen, setOpenPolissen] = useState(() =>
-    storedState.verzekeringen.map((verzekering) => verzekering.id)
+    storedState.verzekeringen.length ? [storedState.verzekeringen[0].id] : []
   );
   const [settingsOpen, setSettingsOpen] = useState(false);
   const fileInputRef = useRef(null);
@@ -900,13 +900,19 @@ export default function App() {
   const voegVerzekeringToe = () => {
     const nextId = Math.max(0, ...verzekeringen.map((verzekering) => verzekering.id)) + 1;
     setVerzekeringen((current) => [...current, createInsurance(nextId, `Nieuwe polis ${nextId}`)]);
-    setOpenPolissen((current) => [...current, nextId]);
+    setOpenPolissen([nextId]);
   };
 
   const verwijderVerzekering = (id) => {
     if (verzekeringen.length === 1) return;
     setVerzekeringen((current) => current.filter((verzekering) => verzekering.id !== id));
-    setOpenPolissen((current) => current.filter((openId) => openId !== id));
+    setOpenPolissen((current) => {
+      const next = current.filter((openId) => openId !== id);
+      if (next.length) return next;
+
+      const fallback = verzekeringen.find((verzekering) => verzekering.id !== id);
+      return fallback ? [fallback.id] : [];
+    });
   };
 
   const dupliceerVerzekering = (id) => {
@@ -930,13 +936,13 @@ export default function App() {
     });
 
     if (nieuweId != null) {
-      setOpenPolissen((current) => [...current, nieuweId]);
+      setOpenPolissen([nieuweId]);
     }
   };
 
   const togglePolisOpen = (id) => {
     setOpenPolissen((current) =>
-      current.includes(id) ? current.filter((openId) => openId !== id) : [...current, id]
+      current.includes(id) ? [] : [id]
     );
   };
 
@@ -991,7 +997,7 @@ export default function App() {
         ...verzekering
       }));
       setVerzekeringen(nextVerzekeringen);
-      setOpenPolissen(nextVerzekeringen.map((verzekering) => verzekering.id));
+      setOpenPolissen(nextVerzekeringen.length ? [nextVerzekeringen[0].id] : []);
       window.alert('Bestand geïmporteerd.');
     } catch (error) {
       window.alert(error.message || 'Importeren is mislukt.');
