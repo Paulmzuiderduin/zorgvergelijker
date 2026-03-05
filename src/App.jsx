@@ -812,6 +812,8 @@ export default function App() {
   );
   const [settingsOpen, setSettingsOpen] = useState(false);
   const fileInputRef = useRef(null);
+  const stappenRef = useRef(null);
+  const settingsRef = useRef(null);
 
   useEffect(() => {
     try {
@@ -1056,6 +1058,38 @@ export default function App() {
   const vorigeStap = actieveStapIndex > 0 ? stappen[actieveStapIndex - 1] : null;
   const volgendeStap = actieveStapIndex < stappen.length - 1 ? stappen[actieveStapIndex + 1] : null;
 
+  const scrollNaarStappen = () => {
+    if (stappenRef.current) {
+      stappenRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const gaNaarStap = (stap) => {
+    setActieveStap(stap);
+    window.requestAnimationFrame(() => {
+      scrollNaarStappen();
+    });
+  };
+
+  const toggleInstellingen = () => {
+    setSettingsOpen((current) => {
+      const next = !current;
+
+      if (next) {
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            settingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        });
+      }
+
+      return next;
+    });
+  };
+
   return (
     <main className="page-shell">
       <div className="ambient ambient-left" />
@@ -1080,7 +1114,7 @@ export default function App() {
             <button
               type="button"
               className="secondary-button"
-              onClick={() => setSettingsOpen((current) => !current)}
+              onClick={toggleInstellingen}
               aria-expanded={settingsOpen}
               aria-controls="instellingen-paneel"
             >
@@ -1131,7 +1165,7 @@ export default function App() {
       </section>
 
       {settingsOpen ? (
-        <section className="settings-panel" id="instellingen-paneel">
+        <section className="settings-panel" id="instellingen-paneel" ref={settingsRef}>
           <div className="settings-header">
             <div>
               <p className="section-kicker">Instellingen</p>
@@ -1184,13 +1218,13 @@ export default function App() {
         </section>
       ) : null}
 
-      <section className="workspace-tabs" aria-label="Stappen">
+      <section className="workspace-tabs" aria-label="Stappen" ref={stappenRef}>
         {stappen.map((stap) => (
           <button
             key={stap}
             type="button"
             className={`workflow-card workflow-tab ${actieveStap === stap ? 'is-active' : ''}`}
-            onClick={() => setActieveStap(stap)}
+            onClick={() => gaNaarStap(stap)}
           >
             <span className="section-kicker">{stapMeta[stap].stap}</span>
             <strong>{stapMeta[stap].label}</strong>
@@ -1499,7 +1533,7 @@ export default function App() {
 
         <div className="tab-footer">
           {vorigeStap ? (
-            <button type="button" className="secondary-button" onClick={() => setActieveStap(vorigeStap)}>
+            <button type="button" className="secondary-button" onClick={() => gaNaarStap(vorigeStap)}>
               <ChevronLeft size={18} />
               Vorige
             </button>
@@ -1507,7 +1541,7 @@ export default function App() {
             <span />
           )}
           {volgendeStap ? (
-            <button type="button" className="primary-button" onClick={() => setActieveStap(volgendeStap)}>
+            <button type="button" className="primary-button" onClick={() => gaNaarStap(volgendeStap)}>
               Volgende
               <ChevronRight size={18} />
             </button>
