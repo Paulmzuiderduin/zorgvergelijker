@@ -1081,7 +1081,9 @@ export default function App() {
       if (next) {
         window.requestAnimationFrame(() => {
           window.requestAnimationFrame(() => {
-            settingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const settingsTop =
+              (settingsRef.current?.getBoundingClientRect().top ?? 0) + window.scrollY - 8;
+            window.scrollTo({ top: Math.max(0, settingsTop), behavior: 'auto' });
           });
         });
       }
