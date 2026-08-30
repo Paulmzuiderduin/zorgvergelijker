@@ -686,6 +686,12 @@ button {
   gap: 1.15rem;
 }
 
+.policy-add-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.25rem;
+}
+
 .icon-button {
   width: 3rem;
   height: 3rem;

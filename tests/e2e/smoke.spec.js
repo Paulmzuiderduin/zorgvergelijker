@@ -11,7 +11,7 @@ test('smoke: simplified comparator renders, migrates the workflow, and updates r
 
   await page.locator('#step-zorggebruik').getByRole('spinbutton', { name: 'Tandartskosten per jaar' }).fill('400');
   await page.getByRole('button', { name: 'Voeg je polissen toe' }).click();
-  await page.getByRole('button', { name: 'Polis toevoegen' }).click();
+  await page.getByRole('button', { name: 'Polis toevoegen' }).first().click();
 
   await expect(page.getByLabel('Totale maandpremie')).toHaveCount(1);
 
