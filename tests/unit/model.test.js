@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { berekenKosten, createInsurance, normalizeState } from '../../src/model.js';
+import { berekenKosten, createInsurance, defaultState, normalizeState } from '../../src/model.js';
+
+test('starts new visitors without policies or example comparison data', () => {
+  assert.equal(defaultState.verzekeringen.length, 0);
+});
 
 test('caps expected deductible care at the selected deductible', () => {
   const verzekering = { ...createInsurance(1, 'Test'), maandpremie: 100, eigenRisico: 885 };
@@ -81,5 +85,6 @@ test('migrates a version-one export to the simplified model', () => {
   assert.equal(migrated.verzekeringen[0].id, 1);
   assert.equal(migrated.verzekeringen[0].naam, 'Oude polis');
   assert.equal(migrated.verzekeringen[0].maandpremie, 135);
+  assert.deepEqual(migrated.verzekeringen[0].checks, { zorgverlener: false, toestemming: false, acceptatie: false, eigenBijdrage: false, lopendeBehandeling: false });
   assert.equal('hulpmiddelenVergoeding' in migrated.verzekeringen[0], false);
 });
