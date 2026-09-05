@@ -4,7 +4,8 @@ test('smoke: first-use flow, policy checks, and comparison work together', async
   await page.goto('/');
 
   await expect(page.getByRole('heading', { name: 'Zorgvergelijker voor je verwachte jaarlasten' })).toBeVisible();
-  await page.getByRole('button', { name: 'Weigeren' }).click();
+  await expect(page.getByText('Jouw invoer blijft op jouw apparaat.')).toBeVisible();
+  await expect(page.getByLabel('Informatie over het overstapseizoen')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Start met je huidige polis' }).first()).toBeVisible();
   await page.getByRole('button', { name: 'Instellingen' }).click();
   await expect(page.getByRole('heading', { name: 'Wat deze rekenhulp wel en niet berekent' })).toBeVisible();
@@ -33,4 +34,13 @@ test('smoke: first-use flow, policy checks, and comparison work together', async
 
   await page.getByRole('button', { name: 'Print of PDF' }).click();
   await expect(page.locator('iframe[aria-hidden="true"]')).toHaveCount(1);
+});
+
+test('how it works page explains privacy and the switching season', async ({ page }) => {
+  await page.goto('/zo-werkt-het.html');
+
+  await expect(page.getByRole('heading', { name: 'Zo werkt Zorgvergelijker' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Je gegevens zijn van jou' })).toBeVisible();
+  await expect(page.getByText('Polisnamen, zorgkosten en notities worden nooit meegestuurd.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Wanneer vergelijken en overstappen?' })).toBeVisible();
 });

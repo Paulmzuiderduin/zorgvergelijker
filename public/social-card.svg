@@ -17,17 +17,17 @@
     Zorgvergelijker
   </text>
   <text x="150" y="302" fill="#164e63" font-family="Arial, sans-serif" font-size="34">
-    Vergelijk je echte jaarlasten op basis van
+    Bereken je eigen jaarlasten op basis van
   </text>
   <text x="150" y="346" fill="#164e63" font-family="Arial, sans-serif" font-size="34">
-    jouw verwachte zorggebruik en polisvoorwaarden.
+    jouw zorginschatting en handmatige polis-invoer.
   </text>
   <rect x="150" y="406" width="246" height="72" rx="36" fill="#0f766e"/>
   <text x="273" y="451" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="30" font-weight="700">
-    Nederlands
+    Zonder account
   </text>
   <rect x="438" y="406" width="286" height="72" rx="36" fill="#f59e0b"/>
   <text x="581" y="451" text-anchor="middle" fill="#111827" font-family="Arial, sans-serif" font-size="30" font-weight="700">
-    Jaaroverzicht
+    Lokale invoer
   </text>
 </svg>

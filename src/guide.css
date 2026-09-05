@@ -1,0 +1,46 @@
+.guide-shell { width: min(980px, calc(100% - 2.5rem)); margin: 0 auto; padding: 1.5rem 0 5rem; }
+.guide-nav, .guide-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.brand-link { color: var(--ink); font-family: Fraunces, Georgia, serif; font-size: 1.35rem; font-weight: 600; letter-spacing: -0.03em; text-decoration: none; }
+.guide-hero { margin-top: 1.3rem; padding: clamp(2rem, 6vw, 5rem); border: 1px solid var(--line-strong); background: var(--pine); color: #f7f4ea; }
+.guide-hero .section-kicker { color: #c8d7cc; }
+.guide-hero h1, .guide-section h2 { margin: 0.55rem 0 0; font-family: Fraunces, Georgia, serif; font-weight: 600; letter-spacing: -0.05em; }
+.guide-hero h1 { max-width: 11ch; font-size: clamp(3.2rem, 9vw, 6.5rem); line-height: 0.9; }
+.guide-hero > p { max-width: 56ch; margin: 1.25rem 0 0; color: #d9e2da; font-size: 1.1rem; line-height: 1.6; }
+.guide-hero .primary-button { margin-top: 1.75rem; border-color: #f7f4ea; background: #f7f4ea; color: var(--pine-dark); }
+.guide-section { margin-top: 1.25rem; padding: clamp(1.4rem, 3vw, 2.5rem); border: 1px solid var(--line-strong); background: var(--paper); }
+.guide-section-heading { display: grid; gap: 0.3rem; max-width: 620px; }
+.guide-section h2 { font-size: clamp(2rem, 4vw, 3.4rem); line-height: 0.98; }
+.guide-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 2rem; border: 1px solid var(--line); }
+.guide-steps article { min-height: 240px; padding: 1.25rem; border-right: 1px solid var(--line); }
+.guide-steps article:last-child { border-right: 0; }
+.guide-steps span { color: var(--ochre); font-family: "DM Mono", monospace; font-size: 0.78rem; }
+.guide-steps h3, .guide-callout h3 { margin: 2rem 0 0; font-family: Fraunces, Georgia, serif; font-size: 1.55rem; letter-spacing: -0.035em; }
+.guide-steps p, .guide-callout p, .guide-copy, .guide-season > p { color: var(--muted); line-height: 1.55; }
+.guide-split { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr); gap: 2rem; align-items: start; }
+.guide-list { display: grid; gap: 0.8rem; margin: 1.5rem 0 0; padding: 0; list-style: none; }
+.guide-list li { position: relative; padding-left: 1.35rem; line-height: 1.45; }
+.guide-list li::before { position: absolute; left: 0; color: var(--pine); content: "•"; font-weight: 700; }
+.guide-callout { padding: 1.35rem; background: var(--ochre-soft); border-left: 4px solid var(--ochre); }
+.guide-callout .section-kicker { color: #69400b; }
+.guide-callout h3 { margin-top: 0.6rem; }
+.guide-callout p { color: #69400b; }
+.guide-data-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.guide-data-grid div { min-height: 122px; padding: 1rem; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #f1f5ee; }
+.guide-data-grid strong, .guide-data-grid span { display: block; }
+.guide-data-grid span { margin-top: 0.35rem; color: var(--muted); font-size: 0.87rem; line-height: 1.4; }
+.guide-season { background: var(--paper-dark); border-left: 5px solid var(--ochre); }
+.guide-season > p { max-width: 72ch; }
+.guide-season .secondary-button { margin-top: 0.7rem; }
+.two-column-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 2rem; }
+.guide-footer { margin-top: 1.25rem; padding: 1.35rem 0 0; border-top: 1px solid var(--line-strong); color: var(--muted); }
+.guide-footer p { margin: 0; }
+.guide-footer a { color: var(--pine-dark); font-weight: 700; }
+
+@media (max-width: 700px) {
+  .guide-shell { width: calc(100% - 1rem); padding-top: 0.5rem; }
+  .guide-nav, .guide-footer { align-items: flex-start; flex-direction: column; }
+  .guide-nav .secondary-button { width: 100%; }
+  .guide-steps, .guide-split, .guide-data-grid, .two-column-list { grid-template-columns: 1fr; }
+  .guide-steps article { min-height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+  .guide-steps article:last-child { border-bottom: 0; }
+}
