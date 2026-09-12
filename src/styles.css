@@ -227,13 +227,13 @@ button { cursor: pointer; }
 .landing-nav > div > a:not(.secondary-button):hover, .landing-footer a:hover, .text-link:hover { text-decoration: underline; }
 
 .landing-hero { display: grid; grid-template-columns: minmax(0, 1.28fr) minmax(360px, 0.72fr); margin-top: 1.4rem; border: 1px solid var(--line-strong); background: var(--paper); }
-.landing-hero-copy { display: flex; flex-direction: column; justify-content: center; min-height: 620px; padding: clamp(2rem, 5vw, 4.75rem); background-image: radial-gradient(circle at 78% 18%, rgba(191,126,46,.18), transparent 24%), linear-gradient(145deg, #fbfaf6 0%, #f1f5ee 100%); }
+.landing-hero-copy { display: flex; flex-direction: column; justify-content: flex-start; min-height: 620px; padding: clamp(1.7rem, 4vw, 3rem) clamp(2rem, 5vw, 4.75rem); background-image: radial-gradient(circle at 78% 18%, rgba(191,126,46,.18), transparent 24%), linear-gradient(145deg, #fbfaf6 0%, #f1f5ee 100%); }
 .landing-hero-copy h1 { max-width: 10ch; margin: 1.2rem 0 1rem; font-family: Fraunces, Georgia, serif; font-size: clamp(3.5rem, 7vw, 7.4rem); font-weight: 600; line-height: .85; letter-spacing: -.07em; }
 .landing-lead { max-width: 61ch; margin: 0; color: var(--muted); font-size: 1.08rem; line-height: 1.62; }
 .landing-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.2rem; margin-top: 2rem; }
 .text-link { display: inline-flex; align-items: center; gap: .35rem; }
 
-.signup-card { display: flex; flex-direction: column; justify-content: center; padding: clamp(1.7rem, 4vw, 3rem); background: var(--pine); color: #f7f4ea; }
+.signup-card { display: flex; flex-direction: column; justify-content: flex-start; padding: clamp(1.7rem, 4vw, 3rem); background: var(--pine); color: #f7f4ea; }
 .signup-card .section-kicker { color: #d8e4da; }
 .signup-card h2 { margin: .8rem 0 0; font-family: Fraunces, Georgia, serif; font-size: clamp(2.3rem, 4vw, 3.8rem); font-weight: 600; line-height: .98; letter-spacing: -.05em; }
 .signup-card > p:not(.section-kicker):not(.form-message):not(.signup-fineprint) { margin: 1rem 0 0; color: #d9e2da; line-height: 1.55; }
