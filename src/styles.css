@@ -255,6 +255,12 @@ button { cursor: pointer; }
 .form-message { margin: 1rem 0 0; padding: .8rem; border: 1px solid rgba(255,255,255,.38); line-height: 1.45; }
 .form-message.is-success { background: rgba(255,255,255,.12); }
 .form-message.is-error { background: rgba(110,18,18,.28); }
+.signup-success { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .9rem; margin-top: 1.7rem; padding: 1.15rem; border: 1px solid rgba(255,255,255,.55); background: rgba(255,255,255,.12); }
+.signup-success > svg { color: #f1c27d; }
+.signup-success .section-kicker { margin: 0; color: #d8e4da; }
+.signup-success h3 { margin: .45rem 0 0; color: #fff; font-family: Fraunces, Georgia, serif; font-size: 1.65rem; line-height: 1.05; }
+.signup-success p:not(.section-kicker) { margin: .65rem 0 0; color: #edf3ee; font-size: .88rem; line-height: 1.5; }
+.signup-success .signup-success-note { color: #cbd8cd; font-size: .76rem; }
 .signup-fineprint { display: flex; align-items: flex-start; gap: .45rem; margin: 1rem 0 0; color: #cbd8cd; font-size: .74rem; line-height: 1.45; }
 .signup-fineprint svg { flex: 0 0 auto; margin-top: .08rem; }
 

@@ -73,7 +73,9 @@ test('landing page explains the product and submits a double opt-in request', as
   await page.getByRole('checkbox').check();
   await expect(page.getByRole('button', { name: 'Stuur mij een seintje' })).toBeEnabled();
   await page.getByRole('button', { name: /Stuur mij een seintje/ }).click();
-  await expect(page.getByRole('status')).toContainText('Controleer je inbox');
+  await expect(page.getByRole('heading', { name: 'Controleer nu je inbox.' })).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('test@example.nl');
+  await expect(page.getByRole('status')).toContainText('definitief te activeren');
 });
 
 test('confirmation page consumes its token and removes it from the address bar', async ({ page }) => {

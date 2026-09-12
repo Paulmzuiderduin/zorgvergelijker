@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowRight, BellRing, Calculator, Check, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
+import { ArrowRight, BellRing, Calculator, Check, CheckCircle2, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { trackEvent } from './analytics.js';
 import { submitWaitlistAction } from './waitlist.js';
 
@@ -17,6 +17,7 @@ export default function LandingPage() {
   const [website, setWebsite] = useState('');
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
+  const [submittedEmail, setSubmittedEmail] = useState('');
   const [turnstileToken, setTurnstileToken] = useState('');
   const [turnstileStatus, setTurnstileStatus] = useState('loading');
 
@@ -97,6 +98,7 @@ export default function LandingPage() {
 
     try {
       const result = await submitWaitlistAction({ action: 'signup', email, consent, website, turnstileToken });
+      setSubmittedEmail(email);
       setStatus('success');
       setMessage(result.message);
       setEmail('');
@@ -137,7 +139,15 @@ export default function LandingPage() {
         <p className="section-kicker"><BellRing size={15} />Eenmalige herinnering</p>
         <h2>Begin wanneer de nieuwe polissen bekend zijn.</h2>
         <p>Laat je e-mailadres achter. Je krijgt één bericht zodra vergelijken voor het nieuwe jaar zinvol is. Geen nieuwsbrief.</p>
-        <form onSubmit={submit} className="signup-form">
+        {status === 'success' ? <div className="signup-success" role="status" aria-live="polite">
+          <CheckCircle2 size={34} />
+          <div>
+            <p className="section-kicker">Aanmelding ontvangen</p>
+            <h3>Controleer nu je inbox.</h3>
+            <p>We hebben een bevestigingsmail gestuurd naar <strong>{submittedEmail}</strong>. Klik op de knop in die e-mail om je herinnering definitief te activeren.</p>
+            <p className="signup-success-note">Geen e-mail gezien? Controleer ook je spamfolder. De afzender is zorgvergelijker@paulzuiderduin.com.</p>
+          </div>
+        </div> : <form onSubmit={submit} className="signup-form">
           <label className="field">
             <span>E-mailadres</span>
             <div className="email-input"><Mail size={18} /><input type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="jij@voorbeeld.nl" /></div>
@@ -147,8 +157,8 @@ export default function LandingPage() {
           <div className="turnstile-container" ref={turnstileContainerRef}></div>
           {turnstileStatus === 'error' ? <p className="turnstile-error" role="status">De beveiligingscontrole kon niet laden. Herlaad de pagina of schakel een inhoudsblokker tijdelijk uit.</p> : null}
           <button className="signup-button" type="submit" disabled={status === 'loading' || turnstileStatus !== 'ready'}>{status === 'loading' ? 'Bezig met inschrijven…' : turnstileStatus === 'ready' ? 'Stuur mij een seintje' : 'Beveiliging controleren…'}<ArrowRight size={18} /></button>
-        </form>
-        {message ? <p className={`form-message ${status === 'error' ? 'is-error' : 'is-success'}`} role="status" aria-live="polite">{message}</p> : null}
+        </form>}
+        {message && status === 'error' ? <p className="form-message is-error" role="status" aria-live="polite">{message}</p> : null}
         <p className="signup-fineprint"><LockKeyhole size={14} />We bewaren alleen je e-mailadres en toestemming. Je inschrijving is pas actief na bevestiging per e-mail.</p>
       </aside>
     </section>
