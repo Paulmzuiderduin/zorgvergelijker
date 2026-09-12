@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, BellRing, Calculator, Check, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { trackEvent } from './analytics.js';
 import { submitWaitlistAction } from './waitlist.js';
@@ -10,21 +10,85 @@ const stappen = [
 ];
 
 export default function LandingPage() {
+  const turnstileContainerRef = useRef(null);
+  const turnstileWidgetIdRef = useRef(null);
   const [email, setEmail] = useState('');
   const [consent, setConsent] = useState(false);
   const [website, setWebsite] = useState('');
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileStatus, setTurnstileStatus] = useState('loading');
+
+  useEffect(() => {
+    let cancelled = false;
+    let retryTimer;
+    const deadline = Date.now() + 12_000;
+
+    const renderTurnstile = () => {
+      if (cancelled) return;
+      if (!window.turnstile || !turnstileContainerRef.current) {
+        if (Date.now() < deadline) {
+          retryTimer = window.setTimeout(renderTurnstile, 100);
+        } else {
+          setTurnstileStatus('error');
+        }
+        return;
+      }
+
+      try {
+        turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
+          sitekey: '0x4AAAAAAExodXdqjXBXy7JA',
+          action: 'waitlist_signup',
+          theme: 'light',
+          size: 'flexible',
+          language: 'nl',
+          callback: (token) => {
+            setTurnstileToken(token);
+            setTurnstileStatus('ready');
+          },
+          'expired-callback': () => {
+            setTurnstileToken('');
+            setTurnstileStatus('checking');
+          },
+          'timeout-callback': () => {
+            setTurnstileToken('');
+            setTurnstileStatus('checking');
+          },
+          'error-callback': () => {
+            setTurnstileToken('');
+            setTurnstileStatus('error');
+          }
+        });
+        setTurnstileStatus('checking');
+      } catch {
+        setTurnstileStatus('error');
+      }
+    };
+
+    renderTurnstile();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(retryTimer);
+      if (turnstileWidgetIdRef.current !== null) {
+        window.turnstile?.remove(turnstileWidgetIdRef.current);
+      }
+    };
+  }, []);
+
+  const resetTurnstile = () => {
+    setTurnstileToken('');
+    setTurnstileStatus('checking');
+    if (turnstileWidgetIdRef.current !== null) {
+      window.turnstile?.reset(turnstileWidgetIdRef.current);
+    }
+  };
 
   const submit = async (event) => {
     event.preventDefault();
-    const form = event.currentTarget;
-    const turnstileToken = new FormData(form)
-      .getAll('cf-turnstile-response')
-      .find((value) => typeof value === 'string' && value.length > 0);
     if (!turnstileToken) {
       setStatus('error');
-      setMessage('Wacht tot de beveiligingscontrole gereed is en probeer het opnieuw.');
+      setMessage('De beveiligingscontrole is nog niet gereed. Probeer het opnieuw.');
       return;
     }
     setStatus('loading');
@@ -37,12 +101,12 @@ export default function LandingPage() {
       setMessage(result.message);
       setEmail('');
       setConsent(false);
-      window.turnstile?.reset();
+      resetTurnstile();
       trackEvent('waitlist_signup_submitted');
     } catch (error) {
       setStatus('error');
       setMessage(error.message);
-      window.turnstile?.reset();
+      resetTurnstile();
       trackEvent('waitlist_signup_failed');
     }
   };
@@ -80,8 +144,9 @@ export default function LandingPage() {
           </label>
           <label className="honeypot" aria-hidden="true">Website<input type="text" tabIndex="-1" autoComplete="off" value={website} onChange={(event) => setWebsite(event.target.value)} /></label>
           <label className="consent-row"><input type="checkbox" required checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span>Ik geef toestemming om mij één herinnering over het overstapseizoen te sturen. Ik kan mij altijd uitschrijven.</span></label>
-          <div className="cf-turnstile" data-sitekey="0x4AAAAAAExodXdqjXBXy7JA" data-action="waitlist_signup" data-theme="light" data-size="flexible"></div>
-          <button className="signup-button" type="submit" disabled={status === 'loading'}>{status === 'loading' ? 'Bezig met inschrijven…' : 'Stuur mij een seintje'}<ArrowRight size={18} /></button>
+          <div className="turnstile-container" ref={turnstileContainerRef}></div>
+          {turnstileStatus === 'error' ? <p className="turnstile-error" role="status">De beveiligingscontrole kon niet laden. Herlaad de pagina of schakel een inhoudsblokker tijdelijk uit.</p> : null}
+          <button className="signup-button" type="submit" disabled={status === 'loading' || turnstileStatus !== 'ready'}>{status === 'loading' ? 'Bezig met inschrijven…' : turnstileStatus === 'ready' ? 'Stuur mij een seintje' : 'Beveiliging controleren…'}<ArrowRight size={18} /></button>
         </form>
         {message ? <p className={`form-message ${status === 'error' ? 'is-error' : 'is-success'}`} role="status" aria-live="polite">{message}</p> : null}
         <p className="signup-fineprint"><LockKeyhole size={14} />We bewaren alleen je e-mailadres en toestemming. Je inschrijving is pas actief na bevestiging per e-mail.</p>

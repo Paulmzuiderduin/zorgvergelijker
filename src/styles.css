@@ -246,7 +246,8 @@ button { cursor: pointer; }
 .email-input:focus-within { outline: 3px solid rgba(245,231,210,.5); }
 .consent-row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .7rem; color: #edf3ee; font-size: .83rem; line-height: 1.45; cursor: pointer; }
 .consent-row input { width: 1.05rem; height: 1.05rem; margin: .15rem 0 0; accent-color: var(--ochre); }
-.cf-turnstile { overflow: hidden; }
+.turnstile-container { overflow: hidden; }
+.turnstile-error { margin: 0; padding: .65rem .75rem; border: 1px solid rgba(255,255,255,.38); background: rgba(110,18,18,.28); color: #fff; font-size: .78rem; line-height: 1.4; }
 .signup-button { display: flex; align-items: center; justify-content: space-between; min-height: 3.25rem; padding: .8rem 1rem; border: 1px solid #f7f4ea; background: #f7f4ea; color: var(--pine-dark); font-weight: 700; }
 .signup-button:hover:not(:disabled) { background: var(--ochre-soft); }
 .signup-button:disabled { cursor: wait; opacity: .72; }

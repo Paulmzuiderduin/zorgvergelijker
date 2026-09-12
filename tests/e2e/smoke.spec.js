@@ -37,6 +37,17 @@ test('smoke: first-use flow, policy checks, and comparison work together', async
 });
 
 test('landing page explains the product and submits a double opt-in request', async ({ page }) => {
+  await page.route('https://challenges.cloudflare.com/**', (route) => route.abort());
+  await page.addInitScript(() => {
+    window.turnstile = {
+      render: (_container, options) => {
+        window.setTimeout(() => options.callback('test-turnstile-token'), 0);
+        return 'test-widget';
+      },
+      remove: () => {},
+      reset: () => {}
+    };
+  });
   await page.route('**/functions/v1/waitlist', async (route) => {
     const payload = route.request().postDataJSON();
     expect(payload).toMatchObject({
@@ -60,13 +71,7 @@ test('landing page explains the product and submits a double opt-in request', as
   await expect(page.getByRole('link', { name: /Start de vergelijking/ })).toHaveAttribute('href', '/vergelijker.html');
   await page.getByLabel('E-mailadres').fill('test@example.nl');
   await page.getByRole('checkbox').check();
-  await page.locator('.signup-form').evaluate((form) => {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'cf-turnstile-response';
-    input.value = 'test-turnstile-token';
-    form.append(input);
-  });
+  await expect(page.getByRole('button', { name: 'Stuur mij een seintje' })).toBeEnabled();
   await page.getByRole('button', { name: /Stuur mij een seintje/ }).click();
   await expect(page.getByRole('status')).toContainText('Controleer je inbox');
 });
