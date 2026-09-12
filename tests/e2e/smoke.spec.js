@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('smoke: first-use flow, policy checks, and comparison work together', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/vergelijker.html');
 
   await expect(page.getByRole('heading', { name: 'Zorgvergelijker voor je verwachte jaarlasten' })).toBeVisible();
   await expect(page.getByText('Jouw invoer blijft op jouw apparaat.')).toBeVisible();
@@ -34,6 +34,57 @@ test('smoke: first-use flow, policy checks, and comparison work together', async
 
   await page.getByRole('button', { name: 'Print of PDF' }).click();
   await expect(page.locator('iframe[aria-hidden="true"]')).toHaveCount(1);
+});
+
+test('landing page explains the product and submits a double opt-in request', async ({ page }) => {
+  await page.route('**/functions/v1/waitlist', async (route) => {
+    const payload = route.request().postDataJSON();
+    expect(payload).toMatchObject({
+      action: 'signup',
+      email: 'test@example.nl',
+      consent: true,
+      website: '',
+      turnstileToken: 'test-turnstile-token'
+    });
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, message: 'Controleer je inbox om je inschrijving te bevestigen.' })
+    });
+  });
+
+  await page.goto('/');
+
+  await expect(page.getByRole('heading', { name: 'Weet wat een zorgpolis je echt per jaar kost.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Begin wanneer de nieuwe polissen bekend zijn.' })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Start de vergelijking/ })).toHaveAttribute('href', '/vergelijker.html');
+  await page.getByLabel('E-mailadres').fill('test@example.nl');
+  await page.getByRole('checkbox').check();
+  await page.locator('.signup-form').evaluate((form) => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'cf-turnstile-response';
+    input.value = 'test-turnstile-token';
+    form.append(input);
+  });
+  await page.getByRole('button', { name: /Stuur mij een seintje/ }).click();
+  await expect(page.getByRole('status')).toContainText('Controleer je inbox');
+});
+
+test('confirmation page consumes its token and removes it from the address bar', async ({ page }) => {
+  await page.route('**/functions/v1/waitlist', async (route) => {
+    expect(route.request().postDataJSON()).toEqual({ action: 'confirm', token: 'a'.repeat(43) });
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, status: 'confirmed' }) });
+  });
+
+  await page.goto(`/bevestigen.html?token=${'a'.repeat(43)}`);
+
+  await expect(page).toHaveURL(/\/bevestigen\.html$/);
+  await expect(page.getByRole('heading', { name: 'Je herinnering staat klaar.' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Open de rekenhulp' })).toHaveAttribute(
+    'href',
+    '/vergelijker.html?utm_source=zorgvergelijker&utm_medium=email&utm_campaign=inschrijfbevestiging&utm_content=bevestigingspagina'
+  );
 });
 
 test('how it works page explains privacy and the switching season', async ({ page }) => {

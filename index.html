@@ -5,7 +5,8 @@
     <meta http-equiv="content-language" content="nl" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script defer src="https://cloud.umami.is/script.js" data-website-id="3fa659b2-1096-4c2c-899b-39cb9f6b23b4"></script>
-    <meta name="description" content="Gratis, lokale rekenhulp om de verwachte jaarlasten van handmatig ingevoerde zorgverzekeringen te vergelijken." />
+    <script async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+    <meta name="description" content="Bereken wat zorgpolissen jou per jaar kosten en ontvang desgewenst één herinnering zodra de nieuwe Nederlandse zorgpremies bekend zijn." />
     <meta name="author" content="Paul Zuiderduin" />
     <meta name="application-name" content="Zorgvergelijker" />
     <meta name="robots" content="index, follow" />
@@ -14,8 +15,8 @@
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="nl_NL" />
     <meta property="og:site_name" content="Zorgvergelijker" />
-    <meta property="og:title" content="Zorgvergelijker | Bereken je eigen jaarlasten" />
-    <meta property="og:description" content="Een gratis, lokale rekenhulp voor handmatig ingevoerde polissen. Zonder account en zonder verzekeringsadvies." />
+    <meta property="og:title" content="Zorgvergelijker | Weet wat je polis per jaar kost" />
+    <meta property="og:description" content="Vergelijk zorgpolissen op basis van jouw verwachte jaarlasten. Gratis, onafhankelijk en privacyvriendelijk." />
     <meta property="og:url" content="https://zorgvergelijker.paulzuiderduin.com/" />
     <meta property="og:image" content="https://zorgvergelijker.paulzuiderduin.com/social-card.png" />
     <meta property="og:image:type" content="image/png" />
@@ -24,8 +25,8 @@
     <meta property="og:image:alt" content="Zorgvergelijker: bereken je eigen jaarlasten, zonder account." />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Zorgvergelijker | Bereken je eigen jaarlasten" />
-    <meta name="twitter:description" content="Een gratis, lokale rekenhulp voor handmatig ingevoerde polissen. Zonder account en zonder verzekeringsadvies." />
+    <meta name="twitter:title" content="Zorgvergelijker | Weet wat je polis per jaar kost" />
+    <meta name="twitter:description" content="Vergelijk zorgpolissen op basis van jouw verwachte jaarlasten. Gratis, onafhankelijk en privacyvriendelijk." />
     <meta name="twitter:image" content="https://zorgvergelijker.paulzuiderduin.com/social-card.png" />
     <meta name="twitter:image:alt" content="Zorgvergelijker: bereken je eigen jaarlasten, zonder account." />
 
@@ -35,31 +36,30 @@
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>Zorgvergelijker | Bereken je eigen jaarlasten</title>
+    <title>Zorgvergelijker | Vergelijk je verwachte zorgkosten</title>
     <script type="application/ld+json">
       [
-        {
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          "@id": "https://zorgvergelijker.paulzuiderduin.com/#app",
-          "name": "Zorgvergelijker",
-          "applicationCategory": "FinanceApplication",
-          "operatingSystem": "Web",
-          "inLanguage": "nl-NL",
-          "url": "https://zorgvergelijker.paulzuiderduin.com/",
-          "description": "Gratis, lokale rekenhulp om de verwachte jaarlasten van handmatig ingevoerde zorgverzekeringen te vergelijken.",
-          "isAccessibleForFree": true,
-          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
-          "creator": { "@type": "Person", "name": "Paul Zuiderduin" }
-        },
         {
           "@context": "https://schema.org",
           "@type": "WebSite",
           "@id": "https://zorgvergelijker.paulzuiderduin.com/#website",
           "name": "Zorgvergelijker",
-          "url": "https://zorgvergelijker.paulzuiderduin.com/",
           "inLanguage": "nl-NL",
+          "url": "https://zorgvergelijker.paulzuiderduin.com/",
+          "description": "Nederlandse uitleg en een gratis rekenhulp voor het vergelijken van verwachte jaarlasten van zorgpolissen.",
           "publisher": { "@type": "Person", "name": "Paul Zuiderduin" }
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "@id": "https://zorgvergelijker.paulzuiderduin.com/vergelijker.html#app",
+          "name": "Zorgvergelijker",
+          "applicationCategory": "FinanceApplication",
+          "operatingSystem": "Web",
+          "inLanguage": "nl-NL",
+          "url": "https://zorgvergelijker.paulzuiderduin.com/vergelijker.html",
+          "isAccessibleForFree": true,
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
         }
       ]
     </script>

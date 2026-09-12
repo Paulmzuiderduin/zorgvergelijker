@@ -9,6 +9,9 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
+        calculator: resolve(import.meta.dirname, 'vergelijker.html'),
+        confirm: resolve(import.meta.dirname, 'bevestigen.html'),
+        unsubscribe: resolve(import.meta.dirname, 'uitschrijven.html'),
         howItWorks: resolve(import.meta.dirname, 'zo-werkt-het.html')
       }
     }
