@@ -57,6 +57,30 @@ De functies gebruiken versleutelde SMTP op poort `465`, omdat Supabase uitgaande
 
 E-maillinks gebruiken consistente UTM-waarden voor attributie in Umami. De bevestigingsroute naar de rekenhulp gebruikt `utm_source=zorgvergelijker`, `utm_medium=email` en `utm_campaign=inschrijfbevestiging`. De seizoensherinnering krijgt een eigen campagne, bijvoorbeeld `overstapseizoen-2027`.
 
+## Meting en distributie
+
+De privacyvriendelijke funnel in Umami bestaat uit:
+
+1. `calculator_opened`
+2. `comparison_started`
+3. `policy_added`
+4. `comparison_completed`, eenmaal per bezoek wanneer stap 3 met minstens twee polissen wordt bekeken
+5. `comparison_exported` of `share_clicked`
+
+Na de resultaten kan een gebruiker anoniem aangeven of de vergelijking duidelijk was. Dit verstuurt alleen `comparison_feedback` met `clear` of `unclear`. Delen gebruikt de Web Share API of kopieert een campagne-URL; de ingevoerde zorgkosten, polisnamen en notities komen nooit in de URL of analytics terecht.
+
+Gebruik voor externe publicaties steeds een herkenbare UTM-link, bijvoorbeeld:
+
+```text
+https://zorgvergelijker.paulzuiderduin.com/?utm_source=linkedin&utm_medium=social&utm_campaign=overstapseizoen-2027&utm_content=founder-post-1
+```
+
+De sitemap voor Google Search Console staat op:
+
+```text
+https://zorgvergelijker.paulzuiderduin.com/sitemap.xml
+```
+
 ## Geplande seizoensherinnering
 
 `supabase/functions/send-reminder` bevat zowel de HTML-e-mail met knop als de platte-tekstfallback. Supabase Cron roept deze functie vanaf 13 november 2026 om 10:00 Nederlandse tijd in kleine batches aan. Alleen adressen die voor dat moment bevestigd zijn, komen in aanmerking en ieder adres ontvangt de herinnering maximaal één keer.

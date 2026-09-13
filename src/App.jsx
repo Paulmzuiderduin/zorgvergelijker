@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Calculator, CheckCircle2, ChevronLeft, ChevronRight, Copy, Download, FileText, LockKeyhole, Plus, Settings2, ShieldCheck, Trash2, Upload } from 'lucide-react';
+import { Calculator, CheckCircle2, ChevronLeft, ChevronRight, CircleHelp, Copy, Download, FileText, LockKeyhole, Plus, Share2, Settings2, ShieldCheck, ThumbsUp, Trash2, Upload } from 'lucide-react';
 import { berekenKosten, createInsurance, defaultState, formatEuro, getKostenDrivers, normalizeState } from './model.js';
 import { trackEvent } from './analytics.js';
 import { getSeasonalMessage } from './season.js';
@@ -94,11 +94,19 @@ export default function App() {
   const [actieveStap, setActieveStap] = useState('zorggebruik');
   const [openPolissen, setOpenPolissen] = useState(() => [storedState.verzekeringen[0]?.id].filter(Boolean));
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [shareStatus, setShareStatus] = useState('');
+  const [feedbackStatus, setFeedbackStatus] = useState('');
   const fileInputRef = useRef(null);
   const stappenRef = useRef(null);
   const settingsRef = useRef(null);
+  const comparisonCompletedRef = useRef(false);
 
   useEffect(() => { window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ versie: 2, zorggebruik, verzekeringen })); }, [zorggebruik, verzekeringen]);
+  useEffect(() => {
+    if (actieveStap !== 'vergelijking' || verzekeringen.length < 2 || comparisonCompletedRef.current) return;
+    comparisonCompletedRef.current = true;
+    trackEvent('comparison_completed', { policy_count: verzekeringen.length });
+  }, [actieveStap, verzekeringen.length]);
   const resultaten = verzekeringen.map((verzekering) => ({ verzekering, kosten: berekenKosten(verzekering, zorggebruik) })).sort((a, b) => a.kosten.totaal - b.kosten.totaal);
   const goedkoopste = resultaten[0] ?? null;
   const updateZorggebruik = (key, value) => setZorggebruik((current) => ({ ...current, [key]: toNumber(value) }));
@@ -112,6 +120,53 @@ export default function App() {
   const exporteerJson = () => { const blob = new Blob([JSON.stringify({ versie: 2, datum: new Date().toISOString(), zorggebruik, verzekeringen }, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `zorgvergelijker-${new Date().toISOString().slice(0, 10)}.json`; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url); trackEvent('comparison_exported', { format: 'json', policy_count: verzekeringen.length }); };
   const importeerJson = async (event) => { const file = event.target.files?.[0]; if (!file) return; try { const next = normalizeState(JSON.parse(await file.text())); setZorggebruik(next.zorggebruik); setVerzekeringen(next.verzekeringen); setOpenPolissen([next.verzekeringen[0]?.id].filter(Boolean)); trackEvent('comparison_imported', { policy_count: next.verzekeringen.length }); window.alert('Bestand geïmporteerd.'); } catch { window.alert('Dit bestand kon niet worden geïmporteerd. Kies een geldig Zorgvergelijker-bestand.'); } finally { event.target.value = ''; } };
   const exporteerPrint = () => { const frame = document.createElement('iframe'); frame.setAttribute('aria-hidden', 'true'); frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0'; document.body.appendChild(frame); const printWindow = frame.contentWindow; if (!printWindow) { frame.remove(); return; } frame.addEventListener('load', () => { printWindow.focus(); printWindow.print(); window.setTimeout(() => frame.remove(), 1200); }, { once: true }); printWindow.document.open(); printWindow.document.write(renderPrintHtml({ zorggebruik, resultaten, goedkoopste })); printWindow.document.close(); trackEvent('comparison_exported', { format: 'print_or_pdf', policy_count: verzekeringen.length }); };
+  const deelRekenhulp = async () => {
+    const url = new URL('/vergelijker.html', window.location.origin);
+    url.searchParams.set('utm_source', 'zorgvergelijker');
+    url.searchParams.set('utm_medium', 'referral');
+    url.searchParams.set('utm_campaign', 'overstapseizoen-2027');
+    url.searchParams.set('utm_content', 'resultaat-delen');
+    const shareData = {
+      title: 'Zorgvergelijker',
+      text: 'Bereken zelf de verwachte jaarlasten van verschillende zorgpolissen.',
+      url: url.toString()
+    };
+    const method = typeof navigator.share === 'function' ? 'native' : 'clipboard';
+
+    trackEvent('share_clicked', { location: 'comparison_results', method });
+    setShareStatus('');
+
+    try {
+      if (method === 'native') {
+        await navigator.share(shareData);
+        setShareStatus('Deelvenster geopend.');
+        return;
+      }
+
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareData.url);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = shareData.url;
+        textarea.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+        document.body.appendChild(textarea);
+        textarea.select();
+        const copied = document.execCommand('copy');
+        textarea.remove();
+        if (!copied) throw new Error('copy_failed');
+      }
+      setShareStatus('Link gekopieerd.');
+    } catch (error) {
+      if (error?.name === 'AbortError') return;
+      setShareStatus('Kopiëren lukte niet. Probeer het opnieuw.');
+      trackEvent('share_failed', { location: 'comparison_results', method });
+    }
+  };
+  const geefFeedback = (answer) => {
+    if (feedbackStatus) return;
+    setFeedbackStatus(answer);
+    trackEvent('comparison_feedback', { answer, policy_count: verzekeringen.length });
+  };
   const gaNaarStap = (stap) => { trackEvent('step_opened', { step: stap }); setActieveStap(stap); window.requestAnimationFrame(() => stappenRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })); };
   const toggleInstellingen = () => {
     setSettingsOpen((current) => {
@@ -137,6 +192,10 @@ export default function App() {
       {actieveStap === 'zorggebruik' ? <section className="tab-panel" id="step-zorggebruik"><div className="step-intro tab-intro"><p className="section-kicker">Stap 1</p><h2>Verwachte kosten</h2><p>Vul alleen kosten in die je redelijk kunt voorspellen. De zorg onder eigen risico wordt per polis automatisch afgetopt op het gekozen eigen risico.</p></div><article className="panel"><div className="zorggroepen-grid">{zorgGroepen.map((groep) => <section key={groep.id} className={`zorggroep-card ${groep.velden.length > 1 ? 'zorggroep-card-paired' : ''}`}><div className="zorggroep-header"><h3>{groep.title}</h3><p>{groep.description}</p></div><div className={`field-grid ${groep.velden.length > 1 ? 'field-grid-paired' : ''}`}>{groep.velden.map((veld) => <label key={veld.key} className="field"><span>{veld.label}</span><input type="number" min="0" step={veld.step || '0.01'} value={zorggebruik[veld.key]} onChange={(event) => updateZorggebruik(veld.key, event.target.value)} /><small>{veld.hint}</small></label>)}</div></section>)}</div></article></section> : null}
       {actieveStap === 'polissen' ? <section className="tab-panel" id="step-polissen"><div className="step-intro step-intro-with-action tab-intro"><div><p className="section-kicker">Stap 2</p><h2>Polissen invoeren</h2><p>Vul per polis de totale maandpremie in, inclusief eventuele aanvullende verzekering. Alleen de vier voorspelbare aanvullende vergoedingen worden meegenomen.</p></div>{verzekeringen.length > 0 ? <button type="button" className="primary-button step-button" onClick={voegVerzekeringToe}><Plus size={18} />Polis toevoegen</button> : null}</div>{verzekeringen.length === 0 ? <article className="empty-policy-state"><p className="section-kicker">Begin hier</p><h3>Voeg eerst je huidige polis toe</h3><p>Vul daarna je totale maandpremie en gekozen eigen risico in. Daarna kun je een alternatief toevoegen en vergelijken.</p><div><button type="button" className="primary-button" onClick={startMetHuidigePolis}><Plus size={18} />Start met je huidige polis</button><button type="button" className="secondary-button" onClick={laadVoorbeeld}><Copy size={18} />Gebruik voorbeeldgegevens</button></div></article> : null}<section className="insurance-stack">{verzekeringen.map((verzekering, index) => { const polisOpen = openPolissen.includes(verzekering.id); return <article key={verzekering.id} className="insurance-card"><div className="insurance-card-top"><div className="insurance-header"><label className="field grow"><span className="polis-label-row"><span>Naam van de polis</span><span className="polis-badge">Polis {index + 1}</span></span><input type="text" value={verzekering.naam} onChange={(event) => updateVerzekering(verzekering.id, 'naam', event.target.value)} /></label><div className="policy-actions"><button type="button" className="mini-button" onClick={() => dupliceerVerzekering(verzekering.id)}><Copy size={16} />Dupliceer</button><button type="button" className="mini-button" onClick={() => setOpenPolissen(polisOpen ? [] : [verzekering.id])}>{polisOpen ? 'Inklappen' : 'Uitklappen'}</button><button type="button" className="icon-button" onClick={() => verwijderVerzekering(verzekering.id)} disabled={verzekeringen.length === 1} aria-label={`Verwijder ${verzekering.naam}`}><Trash2 size={18} /></button></div></div>{!polisOpen ? <div className="policy-collapsed-summary"><span>{formatEuro(verzekering.maandpremie)} per maand</span><span>Eigen risico: {formatEuro(verzekering.eigenRisico)}</span><span>{aantalChecks(verzekering)}/5 checks gecontroleerd</span>{verzekering.notitie ? <span>Notitie toegevoegd</span> : null}</div> : null}</div>{polisOpen ? <div className="policy-sections">{polisGroepen.map((groep) => <section key={groep.id} className="policy-section"><div className="policy-section-header"><h3>{groep.label}</h3><p>{groep.beschrijving}</p></div><div className="field-grid policy-grid">{groep.velden.map((veld) => <label key={veld.key} className="field"><span>{veld.label}</span><input type="number" min="0" max={veld.kind === 'percentage' ? '100' : undefined} step={veld.kind === 'number' || veld.kind === 'percentage' ? '1' : '0.01'} value={verzekering[veld.key]} onChange={(event) => updateVerzekering(verzekering.id, veld.key, event.target.value)} />{veld.hint ? <small>{veld.hint}</small> : null}</label>)}</div></section>)}<section className="policy-section policy-check-section"><div className="policy-section-header"><h3>Controleer voor je overstapt</h3><p>Deze punten tellen niet mee in de berekening, maar zijn nodig om een polis veilig te kunnen kiezen.</p></div><div className="policy-checks">{checklist.map((item) => <label key={item.key} className="policy-check"><input type="checkbox" checked={Boolean(verzekering.checks?.[item.key])} onChange={(event) => updateCheck(verzekering.id, item.key, event.target.checked)} /><span><strong>{item.label}</strong><small>{item.toelichting}</small></span></label>)}</div></section><section className="policy-section policy-note-section"><div className="policy-section-header"><h3>Notitie bij deze polis</h3><p>Noteer bijvoorbeeld een wachttijd, voorwaarden of een zorgverlener die je nog moet controleren.</p></div><label className="field"><span>Notitie</span><textarea rows="3" value={verzekering.notitie} onChange={(event) => updateVerzekering(verzekering.id, 'notitie', event.target.value)} placeholder="Bijvoorbeeld: alleen vergoed bij gecontracteerde behandelaar." /></label></section></div> : null}</article>; })}</section>{verzekeringen.length > 0 ? <div className="policy-add-footer"><button type="button" className="secondary-button" onClick={voegVerzekeringToe}><Plus size={18} />Polis toevoegen</button></div> : null}</section> : null}
       {actieveStap === 'vergelijking' ? <section className="tab-panel" id="step-vergelijking"><div className="step-intro tab-intro"><p className="section-kicker">Stap 3</p><h2>Vergelijking</h2><p>Dit is een kostenvergelijking op basis van jouw invoer, geen verzekeringsadvies.</p></div>{resultaten.length === 0 ? <article className="empty-policy-state"><p className="section-kicker">Nog geen vergelijking</p><h3>Voeg je huidige polis toe om te beginnen</h3><p>Pas nadat je minstens één polis hebt ingevoerd, kan Zorgvergelijker jaarlasten tonen.</p><button type="button" className="primary-button" onClick={startMetHuidigePolis}><Plus size={18} />Start met je huidige polis</button></article> : <div className="results-layout"><article className="panel insight-panel"><div className="insight-stack"><div className="insight-card highlight"><span>Laagste berekende jaarlast</span><strong>{goedkoopste?.verzekering.naam || 'Nog niet beschikbaar'}</strong><p>{goedkoopste ? formatEuro(goedkoopste.kosten.totaal) : 'Vul een polis in om te vergelijken.'}</p></div><div className="insight-card"><span>Belangrijk</span><strong>Controleer altijd de voorwaarden</strong><p>Deze tool controleert geen zorgverleners, toestemming, wettelijke eigen bijdragen, acceptatie of wachttijden.</p></div></div></article><section className="results-grid">{resultaten.map((resultaat, index) => <article key={resultaat.verzekering.id} className={`result-card ${index === 0 ? 'is-best' : ''}`} data-testid="result-card"><div className="result-topline"><div><p className="result-rank">{index === 0 ? 'Laagste berekende jaarlast' : `Plaats ${index + 1}`}</p><h3>{resultaat.verzekering.naam}</h3></div><div className="result-total">{formatEuro(resultaat.kosten.totaal)}</div></div><div className={`policy-check-status ${aantalChecks(resultaat.verzekering) === checklist.length ? 'is-complete' : ''}`}><CheckCircle2 size={17} /><span>{aantalChecks(resultaat.verzekering)}/{checklist.length} overstapchecks gecontroleerd</span></div><div className="result-highlights"><span className="result-highlights-label">Belangrijkste kostenposten</span><div className="result-highlights-list">{getKostenDrivers(resultaat.kosten).map((driver) => <div key={driver.key} className="highlight-pill"><span>{driver.label}</span><strong>{formatEuro(driver.value)}</strong></div>)}</div></div><div className="metric-row"><div className="metric-box"><span>Jaarpremie</span><strong>{formatEuro(resultaat.kosten.jaarPremie)}</strong></div><div className="metric-box"><span>Eigen risico gebruikt</span><strong>{formatEuro(resultaat.kosten.eigenRisicoGebruikt)}</strong></div><div className="metric-box"><span>Andere eigen kosten</span><strong>{formatEuro(resultaat.kosten.eigenKostenAanvullend)}</strong></div></div><div className="difference-bar">{index === 0 ? 'Referentiepunt voor deze vergelijking' : `${formatEuro(resultaat.kosten.totaal - goedkoopste.kosten.totaal)} duurder dan de laagste berekende optie`}</div><details className="breakdown"><summary>Bekijk opbouw van de eigen kosten</summary><div className="breakdown-grid">{Object.entries(resultaat.kosten.breakdown).map(([key, value]) => <div key={key}>{({ tandarts: 'Tandarts en mondzorg', fysio: 'Fysiotherapie', bril: 'Brillen en lenzen', alternatief: 'Alternatieve zorg', overig: 'Andere eigen kosten' })[key]}: {formatEuro(value)}</div>)}</div></details>{resultaat.verzekering.notitie ? <div className="policy-note-box"><span className="result-highlights-label">Opmerking bij deze polis</span><p>{resultaat.verzekering.notitie}</p></div> : null}</article>)}</section></div>}</section> : null}
+      {actieveStap === 'vergelijking' && resultaten.length > 1 ? <section className="result-followup" aria-label="Delen en feedback">
+        <div className="result-share"><div><p className="section-kicker">Help iemand vergelijken</p><h3>Ken je iemand die ook polissen naast elkaar wil zetten?</h3><p>Je deelt alleen een link naar de lege rekenhulp. Jouw invoer blijft op dit apparaat.</p></div><div><button type="button" className="primary-button" onClick={deelRekenhulp}><Share2 size={18} />Deel deze rekenhulp</button>{shareStatus ? <p className="action-status" role="status">{shareStatus}</p> : null}</div></div>
+        <div className="result-feedback"><div><p className="section-kicker">Snelle vraag</p><h3>Was deze vergelijking duidelijk?</h3></div>{feedbackStatus ? <p className="feedback-thanks" role="status"><CheckCircle2 size={19} />Bedankt, hiermee verbeteren we de rekenhulp.</p> : <div className="feedback-actions"><button type="button" className="mini-button" onClick={() => geefFeedback('clear')}><ThumbsUp size={17} />Ja, duidelijk</button><button type="button" className="mini-button" onClick={() => geefFeedback('unclear')}><CircleHelp size={17} />Nog niet helemaal</button></div>}</div>
+      </section> : null}
       <div className="tab-footer">{actieveStapIndex > 0 ? <button type="button" className="secondary-button" onClick={() => gaNaarStap(stappen[actieveStapIndex - 1])}><ChevronLeft size={18} />Vorige</button> : <span />}{actieveStapIndex < stappen.length - 1 ? <button type="button" className="primary-button" onClick={() => gaNaarStap(stappen[actieveStapIndex + 1])}>Volgende<ChevronRight size={18} /></button> : <span />}</div>
     </section>
   </main>;

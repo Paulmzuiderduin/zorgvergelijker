@@ -217,6 +217,18 @@ button { cursor: pointer; }
 .policy-note-box { margin-top: 1rem; padding: 0.85rem; background: var(--ochre-soft); border-left: 3px solid var(--ochre); }
 .policy-note-box p { margin: 0.35rem 0 0; color: var(--muted); line-height: 1.5; }
 
+.result-followup { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr); margin-top: 1.4rem; border: 1px solid var(--line-strong); background: var(--paper); }
+.result-share, .result-feedback { padding: 1.4rem; }
+.result-share { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1.5rem; align-items: end; border-right: 1px solid var(--line-strong); background: var(--pine-soft); }
+.result-share h3, .result-feedback h3 { margin: 0.4rem 0 0; font-family: Fraunces, Georgia, serif; font-size: 1.55rem; font-weight: 600; letter-spacing: -0.03em; }
+.result-share p:not(.section-kicker) { max-width: 55ch; margin: 0.55rem 0 0; color: var(--muted); line-height: 1.45; }
+.result-share > div:last-child { display: grid; justify-items: start; }
+.action-status { color: var(--pine-dark) !important; font-family: "DM Mono", monospace; font-size: 0.74rem; }
+.result-feedback { display: grid; gap: 1rem; align-content: space-between; background: var(--ochre-soft); }
+.feedback-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.feedback-thanks { display: flex; align-items: flex-start; gap: 0.55rem; margin: 0; color: var(--pine-dark); font-weight: 700; line-height: 1.4; }
+.feedback-thanks svg { flex: 0 0 auto; }
+
 .tab-footer { display: flex; justify-content: space-between; margin-top: 1.8rem; padding-top: 1rem; border-top: 1px solid var(--line-strong); }
 .tab-footer > span { min-width: 1px; }
 
@@ -308,13 +320,14 @@ button { cursor: pointer; }
 @keyframes token-spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 900px) {
-  .hero-card, .settings-header, .results-layout, .landing-hero, .landing-proof, .privacy-section { grid-template-columns: 1fr; }
+  .hero-card, .settings-header, .results-layout, .result-followup, .landing-hero, .landing-proof, .privacy-section { grid-template-columns: 1fr; }
   .hero-summary { min-height: 270px; }
   .landing-hero-copy { min-height: auto; }
   .origin-strip { grid-template-columns: 1fr; gap: 1rem; }
   .insight-panel { position: static; }
   .policy-section { grid-template-columns: 1fr; }
   .policy-note-section > .field { grid-column: auto; }
+  .result-share { border-right: 0; border-bottom: 1px solid var(--line-strong); }
   .empty-policy-state > div { flex-direction: column; }
   .empty-policy-state .primary-button, .empty-policy-state .secondary-button { width: 100%; }
 }
@@ -351,6 +364,8 @@ button { cursor: pointer; }
   .zorggroep-card:last-child { border-bottom: 0; }
   .field-grid-paired { grid-template-columns: 1fr; }
   .insurance-header, .result-topline { flex-direction: column; }
+  .result-share { grid-template-columns: 1fr; }
+  .result-share .primary-button { width: 100%; }
   .policy-actions { justify-content: flex-start; }
   .result-total { text-align: left; }
   .metric-box, .metric-box:last-child, .breakdown-grid div { border-right: 0; border-bottom: 1px solid var(--line); }

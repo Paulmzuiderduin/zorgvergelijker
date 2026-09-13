@@ -1,6 +1,17 @@
 import { expect, test } from '@playwright/test';
 
 test('smoke: first-use flow, policy checks, and comparison work together', async ({ page }) => {
+  await page.route('https://cloud.umami.is/**', (route) => route.abort());
+  await page.addInitScript(() => {
+    window.__trackedEvents = [];
+    window.umami = {
+      track: (name, data) => window.__trackedEvents.push({ name, data })
+    };
+    Object.defineProperty(navigator, 'share', {
+      configurable: true,
+      value: async (data) => { window.__sharedData = data; }
+    });
+  });
   await page.goto('/vergelijker.html');
 
   await expect(page.getByRole('heading', { name: 'Zorgvergelijker voor je verwachte jaarlasten' })).toBeVisible();
@@ -31,6 +42,23 @@ test('smoke: first-use flow, policy checks, and comparison work together', async
   await expect(page.getByRole('heading', { name: 'Testpolis compact' })).toBeVisible();
   await expect(page.getByText('1/5 overstapchecks gecontroleerd')).toBeVisible();
   await expect(page.getByText('Deze tool controleert geen zorgverleners, toestemming, wettelijke eigen bijdragen, acceptatie of wachttijden.')).toBeVisible();
+
+  await expect.poll(() => page.evaluate(() => window.__trackedEvents.filter(({ name }) => name === 'comparison_completed').length)).toBe(1);
+  await page.getByRole('button', { name: 'Vul je zorggebruik in' }).click();
+  await page.getByRole('button', { name: 'Vergelijk de jaarlasten' }).click();
+  await expect.poll(() => page.evaluate(() => window.__trackedEvents.filter(({ name }) => name === 'comparison_completed').length)).toBe(1);
+
+  await page.getByRole('button', { name: 'Deel deze rekenhulp' }).click();
+  await expect(page.getByRole('status')).toContainText('Deelvenster geopend.');
+  const sharedUrl = await page.evaluate(() => window.__sharedData.url);
+  expect(sharedUrl).toContain('/vergelijker.html?');
+  expect(sharedUrl).toContain('utm_medium=referral');
+  expect(sharedUrl).not.toContain('Testpolis');
+  await expect.poll(() => page.evaluate(() => window.__trackedEvents.filter(({ name }) => name === 'share_clicked').length)).toBe(1);
+
+  await page.getByRole('button', { name: 'Ja, duidelijk' }).click();
+  await expect(page.getByText('Bedankt, hiermee verbeteren we de rekenhulp.')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.__trackedEvents.filter(({ name }) => name === 'comparison_feedback').length)).toBe(1);
 
   await page.getByRole('button', { name: 'Print of PDF' }).click();
   await expect(page.locator('iframe[aria-hidden="true"]')).toHaveCount(1);
@@ -76,6 +104,24 @@ test('landing page explains the product and submits a double opt-in request', as
   await expect(page.getByRole('heading', { name: 'Controleer nu je inbox.' })).toBeVisible();
   await expect(page.getByRole('status')).toContainText('test@example.nl');
   await expect(page.getByRole('status')).toContainText('definitief te activeren');
+});
+
+test('result sharing and feedback stay usable on mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route('https://cloud.umami.is/**', (route) => route.abort());
+  await page.goto('/vergelijker.html');
+
+  await page.getByRole('button', { name: 'Gebruik voorbeeldgegevens' }).first().click();
+  await page.getByRole('button', { name: 'Vergelijk de jaarlasten' }).click();
+
+  const followup = page.getByRole('region', { name: 'Delen en feedback' });
+  await expect(followup).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Deel deze rekenhulp' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Ja, duidelijk' })).toBeVisible();
+
+  const bounds = await followup.boundingBox();
+  expect(bounds.x).toBeGreaterThanOrEqual(0);
+  expect(bounds.x + bounds.width).toBeLessThanOrEqual(390);
 });
 
 test('confirmation page consumes its token and removes it from the address bar', async ({ page }) => {
