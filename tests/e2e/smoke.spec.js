@@ -14,18 +14,26 @@ test('smoke: first-use flow, policy checks, and comparison work together', async
   });
   await page.goto('/vergelijker.html');
 
-  await expect(page.getByRole('heading', { name: 'Zorgvergelijker voor je verwachte jaarlasten' })).toBeVisible();
-  await expect(page.getByText('Jouw invoer blijft op jouw apparaat.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Vergelijk je verwachte jaarlasten' })).toBeVisible();
+  await expect(page.getByText('Polisnamen en bedragen blijven op je apparaat.')).toBeVisible();
   await expect(page.getByLabel('Informatie over het overstapseizoen')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Start met je huidige polis' }).first()).toBeVisible();
-  await page.getByRole('button', { name: 'Instellingen' }).click();
-  await expect(page.getByRole('heading', { name: 'Wat deze rekenhulp wel en niet berekent' })).toBeVisible();
-  await expect(page.getByText('Is jouw vaste ziekenhuis, therapeut, kliniek of andere zorgverlener gecontracteerd?')).toBeVisible();
 
-  await page.locator('#step-zorggebruik').getByRole('spinbutton', { name: 'Tandartskosten per jaar' }).fill('400');
-  await page.getByRole('button', { name: 'Start met je huidige polis' }).first().click();
-  await expect(page.getByRole('heading', { name: 'Polissen invoeren' })).toBeVisible();
-  await page.getByRole('checkbox', { name: /Zorgverlener gecontroleerd/ }).check();
+  const tandarts = page.locator('.care-card').filter({ has: page.getByRole('heading', { name: 'Tandarts', exact: true }) });
+  await tandarts.getByRole('spinbutton', { name: 'Kosten per jaar' }).fill('400');
+  await page.getByText('Speciale situaties', { exact: true }).click();
+  const orthodontie = page.locator('.care-card').filter({ has: page.getByRole('heading', { name: 'Orthodontie', exact: true }) });
+  await orthodontie.getByRole('spinbutton', { name: 'Verwachte kosten' }).fill('900');
+  await page.getByRole('button', { name: 'Eigen zorgpost toevoegen' }).click();
+  await page.getByLabel('Naam zorgpost').fill('Podotherapie');
+  await page.getByRole('spinbutton', { name: 'Verwachte kosten', exact: true }).fill('180');
+
+  await page.getByRole('button', { name: 'Volgende' }).click();
+  await page.getByRole('button', { name: 'Huidige polis toevoegen' }).first().click();
+  await expect(page.getByRole('heading', { name: 'Welke polissen vergelijk je?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Orthodontie', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Eigen zorgposten' })).toBeVisible();
+  await page.locator('.policy-disclosure > summary').filter({ hasText: 'Controlepunten' }).click();
+  await page.getByRole('checkbox', { name: 'Zorgverlener gecontracteerd' }).check();
   await page.getByRole('button', { name: 'Polis toevoegen' }).first().click();
 
   await expect(page.getByLabel('Totale maandpremie')).toHaveCount(1);
@@ -36,19 +44,19 @@ test('smoke: first-use flow, policy checks, and comparison work together', async
   const maandpremieVelden = page.getByLabel('Totale maandpremie');
   await maandpremieVelden.nth(0).fill('120');
 
-  await page.getByRole('button', { name: 'Vergelijk de jaarlasten' }).click();
-  await expect(page.getByText('Laagste berekende jaarlast').first()).toBeVisible();
+  await page.getByRole('button', { name: /Resultaat/ }).click();
+  await expect(page.getByText('Laagste jaarlast').first()).toBeVisible();
   await expect(page.getByTestId('result-card')).toHaveCount(2);
   await expect(page.getByRole('heading', { name: 'Testpolis compact' })).toBeVisible();
-  await expect(page.getByText('1/5 overstapchecks gecontroleerd')).toBeVisible();
-  await expect(page.getByText('Deze tool controleert geen zorgverleners, toestemming, wettelijke eigen bijdragen, acceptatie of wachttijden.')).toBeVisible();
+  await expect(page.getByText('1/5 checks')).toBeVisible();
+  await expect(page.getByText('Controleer voorwaarden altijd bij de verzekeraar.')).toBeVisible();
 
   await expect.poll(() => page.evaluate(() => window.__trackedEvents.filter(({ name }) => name === 'comparison_completed').length)).toBe(1);
-  await page.getByRole('button', { name: 'Vul je zorggebruik in' }).click();
-  await page.getByRole('button', { name: 'Vergelijk de jaarlasten' }).click();
+  await page.getByRole('button', { name: /Zorggebruik/ }).click();
+  await page.getByRole('button', { name: /Resultaat/ }).click();
   await expect.poll(() => page.evaluate(() => window.__trackedEvents.filter(({ name }) => name === 'comparison_completed').length)).toBe(1);
 
-  await page.getByRole('button', { name: 'Deel deze rekenhulp' }).click();
+  await page.getByRole('button', { name: 'Deel link' }).click();
   await expect(page.getByRole('status')).toContainText('Deelvenster geopend.');
   const sharedUrl = await page.evaluate(() => window.__sharedData.url);
   expect(sharedUrl).toContain('/vergelijker.html?');
@@ -56,11 +64,11 @@ test('smoke: first-use flow, policy checks, and comparison work together', async
   expect(sharedUrl).not.toContain('Testpolis');
   await expect.poll(() => page.evaluate(() => window.__trackedEvents.filter(({ name }) => name === 'share_clicked').length)).toBe(1);
 
-  await page.getByRole('button', { name: 'Ja, duidelijk' }).click();
-  await expect(page.getByText('Bedankt, hiermee verbeteren we de rekenhulp.')).toBeVisible();
+  await page.getByRole('button', { name: 'Ja', exact: true }).click();
+  await expect(page.getByText('Bedankt.')).toBeVisible();
   await expect.poll(() => page.evaluate(() => window.__trackedEvents.filter(({ name }) => name === 'comparison_feedback').length)).toBe(1);
 
-  await page.getByRole('button', { name: 'Print of PDF' }).click();
+  await page.getByRole('button', { name: 'Print/PDF' }).click();
   await expect(page.locator('iframe[aria-hidden="true"]')).toHaveCount(1);
 });
 
@@ -96,14 +104,14 @@ test('landing page explains the product and submits a double opt-in request', as
 
   await expect(page.getByRole('heading', { name: 'Weet wat een zorgpolis je echt per jaar kost.' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Begin wanneer de nieuwe polissen bekend zijn.' })).toBeVisible();
-  await expect(page.getByRole('link', { name: /Start de vergelijking/ })).toHaveAttribute('href', '/vergelijker.html');
+  await expect(page.getByRole('link', { name: /Start vergelijking/ })).toHaveAttribute('href', '/vergelijker.html');
   await page.getByLabel('E-mailadres').fill('test@example.nl');
   await page.getByRole('checkbox').check();
   await expect(page.getByRole('button', { name: 'Stuur mij een seintje' })).toBeEnabled();
   await page.getByRole('button', { name: /Stuur mij een seintje/ }).click();
   await expect(page.getByRole('heading', { name: 'Controleer nu je inbox.' })).toBeVisible();
   await expect(page.getByRole('status')).toContainText('test@example.nl');
-  await expect(page.getByRole('status')).toContainText('definitief te activeren');
+  await expect(page.getByRole('status')).toContainText('Bevestig het adres');
 });
 
 test('result sharing and feedback stay usable on mobile', async ({ page }) => {
@@ -111,13 +119,14 @@ test('result sharing and feedback stay usable on mobile', async ({ page }) => {
   await page.route('https://cloud.umami.is/**', (route) => route.abort());
   await page.goto('/vergelijker.html');
 
-  await page.getByRole('button', { name: 'Gebruik voorbeeldgegevens' }).first().click();
-  await page.getByRole('button', { name: 'Vergelijk de jaarlasten' }).click();
+  await page.getByRole('button', { name: 'Volgende' }).click();
+  await page.getByRole('button', { name: 'Voorbeeld gebruiken' }).first().click();
+  await page.getByRole('button', { name: /Resultaat/ }).click();
 
   const followup = page.getByRole('region', { name: 'Delen en feedback' });
   await expect(followup).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Deel deze rekenhulp' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Ja, duidelijk' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Deel link' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Ja', exact: true })).toBeVisible();
 
   const bounds = await followup.boundingBox();
   expect(bounds.x).toBeGreaterThanOrEqual(0);

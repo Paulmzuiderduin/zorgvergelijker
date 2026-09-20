@@ -46,7 +46,18 @@ test('calculates supplementary reimbursements and predictable personal costs', (
     overigeEigenKosten: 75
   });
 
-  assert.deepEqual(kosten.breakdown, { tandarts: 150, fysio: 80, bril: 60, alternatief: 130, overig: 75 });
+  assert.deepEqual(kosten.breakdown, {
+    tandarts: 150,
+    fysio: 80,
+    bril: 60,
+    alternatief: 130,
+    orthodontie: 0,
+    zwangerschap: 0,
+    wettelijkeBijdragen: 0,
+    maatwerk: 0,
+    nietGecontracteerd: 0,
+    overig: 75
+  });
   assert.equal(kosten.eigenKostenAanvullend, 495);
   assert.equal(kosten.totaal, 2295);
 });
@@ -67,6 +78,33 @@ test('keeps a zero-cost scenario to premium only', () => {
   assert.equal(kosten.eigenKostenAanvullend, 0);
 });
 
+test('calculates special situations, custom reimbursements, and non-contracted care', () => {
+  const verzekering = {
+    ...createInsurance(1, 'Test'),
+    maandpremie: 100,
+    orthodontieVergoeding: 1000,
+    orthodontiePercentage: 75,
+    zwangerschapVergoeding: 200,
+    wettelijkeBijdragenVergoeding: 100,
+    nietGecontracteerdeBijbetaling: 125,
+    extraVergoedingen: { 'extra-1': { maximum: 150, percentage: 50 } }
+  };
+  const kosten = berekenKosten(verzekering, {
+    ...defaultState.zorggebruik,
+    orthodontie: 1600,
+    zwangerschap: 250,
+    wettelijkeBijdragen: 180,
+    extraZorgkosten: [{ id: 'extra-1', naam: 'Podotherapie', kosten: 400 }]
+  });
+
+  assert.equal(kosten.breakdown.orthodontie, 600);
+  assert.equal(kosten.breakdown.zwangerschap, 50);
+  assert.equal(kosten.breakdown.wettelijkeBijdragen, 80);
+  assert.equal(kosten.breakdown.maatwerk, 250);
+  assert.equal(kosten.breakdown.nietGecontracteerd, 125);
+  assert.equal(kosten.totaal, 2305);
+});
+
 test('migrates a version-one export to the simplified model', () => {
   const migrated = normalizeState({
     versie: 1,
@@ -85,6 +123,9 @@ test('migrates a version-one export to the simplified model', () => {
   assert.equal(migrated.verzekeringen[0].id, 1);
   assert.equal(migrated.verzekeringen[0].naam, 'Oude polis');
   assert.equal(migrated.verzekeringen[0].maandpremie, 135);
+  assert.equal(migrated.zorggebruik.orthodontie, 0);
+  assert.deepEqual(migrated.zorggebruik.extraZorgkosten, []);
+  assert.deepEqual(migrated.verzekeringen[0].extraVergoedingen, {});
   assert.deepEqual(migrated.verzekeringen[0].checks, { zorgverlener: false, toestemming: false, acceptatie: false, eigenBijdrage: false, lopendeBehandeling: false });
   assert.equal('hulpmiddelenVergoeding' in migrated.verzekeringen[0], false);
 });
