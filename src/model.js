@@ -1,5 +1,5 @@
 const euro = new Intl.NumberFormat('nl-NL', {
-  style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 2
+  style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2
 });
 
 export const formatEuro = (value) => euro.format(value || 0);
@@ -81,7 +81,19 @@ export const normalizeState = (input) => {
       wettelijkeBijdragen: numberOr(legacy.wettelijkeBijdragen),
       extraZorgkosten: normalizeExtraZorgkosten(legacy.extraZorgkosten)
     },
-    verzekeringen: input.verzekeringen.map(normalizeInsurance)
+    verzekeringen: input.verzekeringen.map((item, index) => {
+      const policy = normalizeInsurance(item, index);
+      // Older files used 0% with a positive maximum to mean 100% up to the cap.
+      if (numberOr(input.versie) < 4) {
+        for (const category of ['tandarts', 'bril', 'orthodontie', 'zwangerschap', 'wettelijkeBijdragen']) {
+          if (policy[`${category}Vergoeding`] > 0 && policy[`${category}Percentage`] === 0) policy[`${category}Percentage`] = 100;
+        }
+        for (const reimbursement of Object.values(policy.extraVergoedingen)) {
+          if (reimbursement.maximum > 0 && reimbursement.percentage === 0) reimbursement.percentage = 100;
+        }
+      }
+      return policy;
+    })
   };
 };
 
@@ -91,8 +103,8 @@ const berekenCategorieVergoeding = (kosten, maximum, percentage) => {
   if (kosten <= 0) return 0;
   const hasMaximum = maximum > 0;
   const hasPercentage = clampPercentage(percentage) > 0;
-  if (!hasMaximum && !hasPercentage) return 0;
-  const opPercentage = hasPercentage ? kosten * (clampPercentage(percentage) / 100) : kosten;
+  if (!hasPercentage) return 0;
+  const opPercentage = kosten * (clampPercentage(percentage) / 100);
   return Math.min(kosten, hasMaximum ? Math.min(opPercentage, maximum) : opPercentage);
 };
 

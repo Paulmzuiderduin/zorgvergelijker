@@ -18,18 +18,18 @@ const stapMeta = {
 };
 
 const zorgGroepen = [
-  { id: 'eigen-risico', title: 'Zorg onder eigen risico', velden: [{ key: 'zorgOnderEigenRisico', label: 'Verwachte kosten', hint: 'Bijvoorbeeld ziekenhuis, specialist of medicijnen.' }] },
+  { id: 'eigen-risico', title: 'Zorg onder eigen risico', velden: [{ key: 'zorgOnderEigenRisico', label: 'Verwachte kosten', hint: 'Alleen verzekerde zorg waarop eigen risico geldt. Geen eigen bijdragen of bijbetaling voor niet-gecontracteerde zorg.' }] },
   { id: 'tandarts', title: 'Tandarts', velden: [{ key: 'tandarts', label: 'Kosten per jaar', hint: 'Controles, mondhygiënist en behandelingen.' }] },
   { id: 'fysio', title: 'Fysiotherapie', velden: [{ key: 'fysioSessies', label: 'Behandelingen', hint: 'Aantal per jaar', step: '1' }, { key: 'fysioKostenPerSessie', label: 'Kosten per behandeling', hint: 'Gemiddelde prijs' }] },
   { id: 'bril', title: 'Bril en lenzen', velden: [{ key: 'bril', label: 'Kosten', hint: 'Wat je komend jaar verwacht uit te geven.' }] },
   { id: 'alternatief', title: 'Alternatieve zorg', velden: [{ key: 'alternatiefSessies', label: 'Behandelingen', hint: 'Aantal per jaar', step: '1' }, { key: 'alternatiefKostenPerSessie', label: 'Kosten per behandeling', hint: 'Gemiddelde prijs' }] },
-  { id: 'overig', title: 'Overige eigen kosten', velden: [{ key: 'overigeEigenKosten', label: 'Kosten zonder vergoeding', hint: 'Alleen kosten die geen polis vergoedt.' }] }
+  { id: 'overig', title: 'Overige eigen kosten', velden: [{ key: 'overigeEigenKosten', label: 'Kosten zonder vergoeding', hint: 'Alleen kosten die geen polis vergoedt en die je nergens anders invult.' }] }
 ];
 
 const specialeZorgGroepen = [
   { id: 'orthodontie', title: 'Orthodontie', key: 'orthodontie', hint: 'Verwachte kosten in het vergelijkingsjaar.' },
-  { id: 'zwangerschap', title: 'Zwangerschap en kraamzorg', key: 'zwangerschap', hint: 'Bijvoorbeeld eigen bijdragen voor kraamzorg of bevalling.' },
-  { id: 'wettelijke-bijdragen', title: 'Medicijnen en hulpmiddelen', key: 'wettelijkeBijdragen', hint: 'Alleen verwachte wettelijke bijdragen of niet-vergoede delen.' }
+  { id: 'zwangerschap', title: 'Zwangerschap en kraamzorg', key: 'zwangerschap', hint: 'Eigen bijdragen voor kraamzorg of bevalling, vóór aanvullende vergoeding. Niet ook bij eigen risico invullen.' },
+  { id: 'wettelijke-bijdragen', title: 'Medicijnen en hulpmiddelen', key: 'wettelijkeBijdragen', hint: 'Eigen bijdragen voor medicijnen of hulpmiddelen, vóór aanvullende vergoeding. Niet ook bij eigen risico invullen.' }
 ];
 
 const polisGroepen = [
@@ -38,16 +38,16 @@ const polisGroepen = [
     velden: [
       { key: 'maandpremie', label: 'Totale maandpremie', hint: 'Basis plus aanvullende pakketten.', kind: 'currency' },
       { key: 'eigenRisico', label: 'Gekozen eigen risico', hint: 'Verplicht en vrijwillig samen.', kind: 'currency' },
-      { key: 'nietGecontracteerdeBijbetaling', label: 'Verwachte bijbetaling niet-gecontracteerde zorg', hint: 'Alleen invullen als je een concrete bijbetaling verwacht.', kind: 'currency' }
+      { key: 'nietGecontracteerdeBijbetaling', label: 'Verwachte bijbetaling niet-gecontracteerde zorg', hint: 'Alleen de bekende bijbetaling naast eigen risico en wettelijke bijdragen. Niet ook bij zorggebruik invullen.', kind: 'currency' }
     ]
   },
-  { id: 'tandarts', label: 'Tandarts', active: (zorg) => zorg.tandarts > 0, velden: [{ key: 'tandartsVergoeding', label: 'Maximum', kind: 'currency' }, { key: 'tandartsPercentage', label: 'Percentage', kind: 'percentage' }] },
+  { id: 'tandarts', label: 'Tandarts', active: (zorg) => zorg.tandarts > 0, velden: [{ key: 'tandartsVergoeding', label: 'Vergoedingslimiet per jaar (€)', hint: '0 = geen bedraglimiet; het percentage bepaalt de vergoeding.', kind: 'currency' }, { key: 'tandartsPercentage', label: 'Vergoedingspercentage (%)', hint: '0 = geen vergoeding. Volledig vergoed? Vul 100 in.', kind: 'percentage' }] },
   { id: 'fysio', label: 'Fysiotherapie', active: (zorg) => zorg.fysioSessies > 0, velden: [{ key: 'fysioSessiesVergoed', label: 'Vergoede behandelingen', kind: 'number' }] },
-  { id: 'bril', label: 'Bril en lenzen', active: (zorg) => zorg.bril > 0, velden: [{ key: 'brilVergoeding', label: 'Beschikbaar maximum dit jaar', kind: 'currency' }, { key: 'brilPercentage', label: 'Percentage', kind: 'percentage' }] },
+  { id: 'bril', label: 'Bril en lenzen', active: (zorg) => zorg.bril > 0, velden: [{ key: 'brilVergoeding', label: 'Resterende vergoeding dit jaar (€)', hint: 'Trek eerder gebruikte vergoeding af van een meerjarig budget. Budget op? Zet het percentage op 0.', kind: 'currency' }, { key: 'brilPercentage', label: 'Vergoedingspercentage (%)', hint: '0 = geen vergoeding. Volledig vergoed? Vul 100 in.', kind: 'percentage' }] },
   { id: 'alternatief', label: 'Alternatieve zorg', active: (zorg) => zorg.alternatiefSessies > 0, velden: [{ key: 'alternatiefMaxVergoeding', label: 'Maximum per jaar', kind: 'currency' }, { key: 'alternatiefPerSessie', label: 'Per behandeling', kind: 'currency' }] },
-  { id: 'orthodontie', label: 'Orthodontie', active: (zorg) => zorg.orthodontie > 0, velden: [{ key: 'orthodontieVergoeding', label: 'Maximum', kind: 'currency' }, { key: 'orthodontiePercentage', label: 'Percentage', kind: 'percentage' }] },
-  { id: 'zwangerschap', label: 'Zwangerschap en kraamzorg', active: (zorg) => zorg.zwangerschap > 0, velden: [{ key: 'zwangerschapVergoeding', label: 'Maximum', kind: 'currency' }, { key: 'zwangerschapPercentage', label: 'Percentage', kind: 'percentage' }] },
-  { id: 'wettelijke-bijdragen', label: 'Medicijnen en hulpmiddelen', active: (zorg) => zorg.wettelijkeBijdragen > 0, velden: [{ key: 'wettelijkeBijdragenVergoeding', label: 'Maximum', kind: 'currency' }, { key: 'wettelijkeBijdragenPercentage', label: 'Percentage', kind: 'percentage' }] }
+  { id: 'orthodontie', label: 'Orthodontie', active: (zorg) => zorg.orthodontie > 0, velden: [{ key: 'orthodontieVergoeding', label: 'Resterende vergoeding dit jaar (€)', hint: 'Gebruik alleen het beschikbare deel van het behandelbudget. Wachttijd of budget op? Zet het percentage op 0.', kind: 'currency' }, { key: 'orthodontiePercentage', label: 'Vergoedingspercentage (%)', hint: '0 = geen vergoeding. Volledig vergoed? Vul 100 in.', kind: 'percentage' }] },
+  { id: 'zwangerschap', label: 'Zwangerschap en kraamzorg', active: (zorg) => zorg.zwangerschap > 0, velden: [{ key: 'zwangerschapVergoeding', label: 'Vergoedingslimiet per jaar (€)', hint: '0 = geen bedraglimiet; het percentage bepaalt de vergoeding.', kind: 'currency' }, { key: 'zwangerschapPercentage', label: 'Vergoedingspercentage (%)', hint: '0 = geen vergoeding. Volledig vergoed? Vul 100 in.', kind: 'percentage' }] },
+  { id: 'wettelijke-bijdragen', label: 'Medicijnen en hulpmiddelen', active: (zorg) => zorg.wettelijkeBijdragen > 0, velden: [{ key: 'wettelijkeBijdragenVergoeding', label: 'Vergoedingslimiet per jaar (€)', hint: '0 = geen bedraglimiet; het percentage bepaalt de vergoeding.', kind: 'currency' }, { key: 'wettelijkeBijdragenPercentage', label: 'Vergoedingspercentage (%)', hint: '0 = geen vergoeding. Volledig vergoed? Vul 100 in.', kind: 'percentage' }] }
 ];
 
 const checklist = [
@@ -67,7 +67,7 @@ const breakdownLabels = {
 
 const maakVoorbeeldPolissen = () => [
   { ...createInsurance(1, 'Voorbeeld: huidige polis'), maandpremie: 154 },
-  { ...createInsurance(2, 'Voorbeeld: alternatief'), maandpremie: 168, tandartsVergoeding: 250, fysioSessiesVergoed: 9, brilVergoeding: 100, alternatiefMaxVergoeding: 200, alternatiefPerSessie: 40 }
+  { ...createInsurance(2, 'Voorbeeld: alternatief'), maandpremie: 168, tandartsVergoeding: 250, tandartsPercentage: 100, fysioSessiesVergoed: 9, brilVergoeding: 100, brilPercentage: 100, alternatiefMaxVergoeding: 200, alternatiefPerSessie: 40 }
 ];
 
 const aantalChecks = (verzekering) => Object.values(verzekering.checks || {}).filter(Boolean).length;
@@ -101,7 +101,7 @@ const renderPrintHtml = ({ zorggebruik, resultaten, goedkoopste }) => {
     ['Overige eigen kosten', zorggebruik.overigeEigenKosten]
   ].filter(([, value]) => value !== 0).map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${typeof value === 'number' ? formatEuro(value) : escapeHtml(value)}</strong></div>`).join('');
   const rows = resultaten.map(({ verzekering, kosten }, index) => `<section class="plan ${goedkoopste?.verzekering.id === verzekering.id ? 'best' : ''}"><header><div><small>${index === 0 ? 'Laagste jaarlast' : `Optie ${index + 1}`}</small><h2>${escapeHtml(verzekering.naam)}</h2></div><strong>${formatEuro(kosten.totaal)}</strong></header><div class="grid"><div><span>Premie</span><b>${formatEuro(kosten.jaarPremie)}</b></div><div><span>Eigen risico</span><b>${formatEuro(kosten.eigenRisicoGebruikt)}</b></div><div><span>Overige eigen kosten</span><b>${formatEuro(kosten.eigenKostenAanvullend)}</b></div></div></section>`).join('');
-  return `<!doctype html><html lang="nl"><head><meta charset="utf-8"><title>Zorgvergelijker</title><style>body{font-family:Arial,sans-serif;margin:0;padding:36px;color:#1d2b26}h1,h2{margin:0}.intro{padding-bottom:20px;border-bottom:2px solid #315c4d}.usage{display:grid;grid-template-columns:repeat(2,1fr);gap:0;margin:24px 0;border:1px solid #cbd5d1}.usage div,.grid div{padding:12px;border-right:1px solid #cbd5d1;border-bottom:1px solid #cbd5d1}.usage span,.grid span{display:block;color:#63736c;font-size:12px;margin-bottom:5px}.plan{padding:20px;margin-bottom:14px;border:1px solid #cbd5d1}.plan.best{border-left:5px solid #315c4d}.plan header{display:flex;justify-content:space-between;gap:20px}.plan header>strong{font-size:28px;color:#315c4d}.plan small{text-transform:uppercase;letter-spacing:.08em}.grid{display:grid;grid-template-columns:repeat(3,1fr);margin-top:16px;border:1px solid #cbd5d1}.notice{padding:14px;background:#eef4ef;border-left:4px solid #315c4d;line-height:1.5}@media print{body{padding:16px}}</style></head><body><div class="intro"><h1>Zorgvergelijker</h1><p>Verwachte jaarlasten op basis van eigen invoer.</p></div><p class="notice"><strong>Let op:</strong> controleer contracten, voorwaarden, acceptatie en wachttijden altijd bij de verzekeraar.</p><div class="usage">${items || '<div><span>Geen zorgkosten ingevuld</span><strong>€ 0</strong></div>'}</div>${rows}</body></html>`;
+  return `<!doctype html><html lang="nl"><head><meta charset="utf-8"><title>Zorgvergelijker</title><style>body{font-family:Arial,sans-serif;margin:0;padding:36px;color:#1d2b26}h1,h2{margin:0}.intro{padding-bottom:20px;border-bottom:2px solid #315c4d}.usage{display:grid;grid-template-columns:repeat(2,1fr);gap:0;margin:24px 0;border:1px solid #cbd5d1}.usage div,.grid div{padding:12px;border-right:1px solid #cbd5d1;border-bottom:1px solid #cbd5d1}.usage span,.grid span{display:block;color:#63736c;font-size:12px;margin-bottom:5px}.plan{padding:20px;margin-bottom:14px;border:1px solid #cbd5d1}.plan.best{border-left:5px solid #315c4d}.plan header{display:flex;justify-content:space-between;gap:20px}.plan header>strong{font-size:28px;color:#315c4d}.plan small{text-transform:uppercase;letter-spacing:.08em}.grid{display:grid;grid-template-columns:repeat(3,1fr);margin-top:16px;border:1px solid #cbd5d1}.notice{padding:14px;background:#eef4ef;border-left:4px solid #315c4d;line-height:1.5}@media print{body{padding:16px}}</style></head><body><div class="intro"><h1>Zorgvergelijker</h1><p>Verwachte jaarlasten op basis van eigen invoer.</p></div><p class="notice"><strong>Let op:</strong> controleer contracten, voorwaarden, acceptatie en wachttijden altijd bij de verzekeraar.</p><div class="usage">${items || '<div><span>Geen zorgkosten ingevuld</span><strong>€ 0,00</strong></div>'}</div>${rows}</body></html>`;
 };
 
 function SeasonalNotice() {
@@ -130,7 +130,7 @@ export default function CalculatorPage() {
   const comparisonCompletedRef = useRef(false);
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ versie: 3, zorggebruik, verzekeringen }));
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ versie: 4, zorggebruik, verzekeringen }));
   }, [zorggebruik, verzekeringen]);
 
   useEffect(() => {
@@ -211,7 +211,7 @@ export default function CalculatorPage() {
     setOpenPolissen([nextId]);
   };
   const exporteerJson = () => {
-    const blob = new Blob([JSON.stringify({ versie: 3, datum: new Date().toISOString(), zorggebruik, verzekeringen }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ versie: 4, datum: new Date().toISOString(), zorggebruik, verzekeringen }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -219,7 +219,7 @@ export default function CalculatorPage() {
     document.body.appendChild(link);
     link.click();
     link.remove();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     trackEvent('comparison_exported', { format: 'json', policy_count: verzekeringen.length });
   };
   const importeerJson = async (event) => {
@@ -245,7 +245,14 @@ export default function CalculatorPage() {
     document.body.appendChild(frame);
     const printWindow = frame.contentWindow;
     if (!printWindow) { frame.remove(); return; }
-    frame.addEventListener('load', () => { printWindow.focus(); printWindow.print(); window.setTimeout(() => frame.remove(), 1200); }, { once: true });
+    frame.addEventListener('load', async () => {
+      await printWindow.document.fonts.ready;
+      printWindow.addEventListener('afterprint', () => frame.remove(), { once: true });
+      printWindow.focus();
+      printWindow.print();
+      // Some browsers omit afterprint; allow time for the preview before cleanup.
+      window.setTimeout(() => frame.remove(), 300_000);
+    }, { once: true });
     printWindow.document.open();
     printWindow.document.write(renderPrintHtml({ zorggebruik, resultaten, goedkoopste }));
     printWindow.document.close();
@@ -319,7 +326,7 @@ export default function CalculatorPage() {
           <div className="special-costs-content">
             <div className="care-grid special-grid">{specialeZorgGroepen.map((groep) => <section key={groep.id} className="care-card"><h3>{groep.title}</h3><NumberField label="Verwachte kosten" value={zorggebruik[groep.key]} hint={groep.hint} onChange={(event) => updateZorggebruik(groep.key, event.target.value)} /></section>)}</div>
             <div className="custom-costs">
-              {zorggebruik.extraZorgkosten.map((item) => <div key={item.id} className="custom-cost-row"><label className="field"><span>Naam zorgpost</span><input type="text" value={item.naam} onChange={(event) => updateExtraZorgpost(item.id, 'naam', event.target.value)} /></label><NumberField label="Verwachte kosten" value={item.kosten} onChange={(event) => updateExtraZorgpost(item.id, 'kosten', event.target.value)} /><button type="button" className="icon-button" onClick={() => verwijderExtraZorgpost(item.id)} aria-label={`Verwijder ${item.naam}`}><Trash2 size={17} /></button></div>)}
+              {zorggebruik.extraZorgkosten.map((item) => <div key={item.id} className="custom-cost-row"><label className="field"><span>Naam zorgpost</span><input type="text" value={item.naam} onChange={(event) => updateExtraZorgpost(item.id, 'naam', event.target.value)} /></label><NumberField label="Verwachte kosten" hint="Vóór vergoeding; niet ook in een andere zorgpost invullen." value={item.kosten} onChange={(event) => updateExtraZorgpost(item.id, 'kosten', event.target.value)} /><button type="button" className="icon-button" onClick={() => verwijderExtraZorgpost(item.id)} aria-label={`Verwijder ${item.naam}`}><Trash2 size={17} /></button></div>)}
               <button type="button" className="secondary-button compact-button" onClick={voegExtraZorgpostToe}><Plus size={16} />Eigen zorgpost toevoegen</button>
             </div>
           </div>
@@ -335,7 +342,7 @@ export default function CalculatorPage() {
             <header className="insurance-header"><div><span className="policy-number">Polis {index + 1}</span><input className="policy-name" aria-label="Naam van de polis" type="text" value={verzekering.naam} onChange={(event) => updateVerzekering(verzekering.id, 'naam', event.target.value)} /></div><div className="policy-actions"><button type="button" className="mini-button" onClick={() => dupliceerVerzekering(verzekering.id)}><Copy size={15} />Dupliceer</button><button type="button" className="mini-button" onClick={() => setOpenPolissen(polisOpen ? [] : [verzekering.id])}>{polisOpen ? 'Sluit' : 'Open'}</button><button type="button" className="icon-button" onClick={() => verwijderVerzekering(verzekering.id)} disabled={verzekeringen.length === 1} aria-label={`Verwijder ${verzekering.naam}`}><Trash2 size={17} /></button></div></header>
             {!polisOpen ? <div className="policy-collapsed-summary"><span>{formatEuro(verzekering.maandpremie)} / maand</span><span>Eigen risico {formatEuro(verzekering.eigenRisico)}</span><span>{aantalChecks(verzekering)}/5 checks</span></div> : <div className="policy-sections">
               {actievePolisGroepen.map((groep) => <section key={groep.id} className="policy-section"><h3>{groep.label}</h3><div className="field-grid policy-grid">{groep.velden.map((veld) => <NumberField key={veld.key} label={veld.label} value={verzekering[veld.key]} hint={veld.hint} step={veld.kind === 'number' || veld.kind === 'percentage' ? '1' : '0.01'} onChange={(event) => updateVerzekering(verzekering.id, veld.key, event.target.value)} />)}</div></section>)}
-              {zorggebruik.extraZorgkosten.length > 0 ? <section className="policy-section"><h3>Eigen zorgposten</h3><div className="custom-reimbursements">{zorggebruik.extraZorgkosten.map((item) => { const vergoeding = verzekering.extraVergoedingen?.[item.id] || {}; return <div key={item.id} className="custom-reimbursement-row"><strong>{item.naam}</strong><NumberField label="Maximum" value={vergoeding.maximum || 0} onChange={(event) => updateExtraVergoeding(verzekering.id, item.id, 'maximum', event.target.value)} /><NumberField label="Percentage" step="1" value={vergoeding.percentage || 0} onChange={(event) => updateExtraVergoeding(verzekering.id, item.id, 'percentage', event.target.value)} /></div>; })}</div></section> : null}
+              {zorggebruik.extraZorgkosten.length > 0 ? <section className="policy-section"><h3>Eigen zorgposten</h3><div className="custom-reimbursements">{zorggebruik.extraZorgkosten.map((item) => { const vergoeding = verzekering.extraVergoedingen?.[item.id] || {}; return <div key={item.id} className="custom-reimbursement-row"><strong>{item.naam}</strong><NumberField label="Vergoedingslimiet per jaar (€)" hint="0 = geen bedraglimiet." value={vergoeding.maximum || 0} onChange={(event) => updateExtraVergoeding(verzekering.id, item.id, 'maximum', event.target.value)} /><NumberField label="Vergoedingspercentage (%)" hint="0 = geen vergoeding; 100 = volledig vergoed." step="1" value={vergoeding.percentage || 0} onChange={(event) => updateExtraVergoeding(verzekering.id, item.id, 'percentage', event.target.value)} /></div>; })}</div></section> : null}
               <details className="policy-disclosure"><summary>Controlepunten <span>{aantalChecks(verzekering)}/5</span></summary><div className="policy-checks">{checklist.map((item) => <label key={item.key} className="policy-check"><input type="checkbox" checked={Boolean(verzekering.checks?.[item.key])} onChange={(event) => updateCheck(verzekering.id, item.key, event.target.checked)} /><span>{item.label}</span></label>)}</div></details>
               <details className="policy-disclosure"><summary>Notitie</summary><label className="field disclosure-field"><textarea rows="3" value={verzekering.notitie} onChange={(event) => updateVerzekering(verzekering.id, 'notitie', event.target.value)} placeholder="Voorwaarde of aandachtspunt bij deze polis" /></label></details>
             </div>}

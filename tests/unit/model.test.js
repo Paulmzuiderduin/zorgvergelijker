@@ -1,9 +1,23 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { berekenKosten, createInsurance, defaultState, normalizeState } from '../../src/model.js';
+import { berekenKosten, createInsurance, defaultState, normalizeState, formatEuro } from '../../src/model.js';
 
 test('starts new visitors without policies or example comparison data', () => {
   assert.equal(defaultState.verzekeringen.length, 0);
+});
+
+test('zero percent means no reimbursement, while legacy caps preserve their totals', () => {
+  const insurance = { ...createInsurance(1, 'Legacy'), tandartsVergoeding: 250, extraVergoedingen: { custom: { maximum: 100, percentage: 0 } } };
+  const usage = { ...defaultState.zorggebruik, tandarts: 400, extraZorgkosten: [{ id: 'custom', naam: 'Voetzorg', kosten: 200 }] };
+  const old = normalizeState({ versie: 3, zorggebruik: usage, verzekeringen: [insurance] });
+  assert.equal(old.verzekeringen[0].tandartsPercentage, 100);
+  assert.equal(old.verzekeringen[0].extraVergoedingen.custom.percentage, 100);
+  assert.equal(berekenKosten(old.verzekeringen[0], usage).breakdown.tandarts, 150);
+  const current = normalizeState({ versie: 4, zorggebruik: usage, verzekeringen: [insurance] });
+  assert.equal(berekenKosten(current.verzekeringen[0], usage).breakdown.tandarts, 400);
+  assert.equal(berekenKosten(current.verzekeringen[0], usage).breakdown.maatwerk, 200);
+  assert.equal(berekenKosten({ ...insurance, tandartsVergoeding: 0, tandartsPercentage: 75 }, usage).breakdown.tandarts, 100);
+  assert.equal(formatEuro(3462.5), '€\u00a03.462,50');
 });
 
 test('caps expected deductible care at the selected deductible', () => {
@@ -32,6 +46,7 @@ test('calculates supplementary reimbursements and predictable personal costs', (
     tandartsPercentage: 75,
     fysioSessiesVergoed: 4,
     brilVergoeding: 100,
+    brilPercentage: 100,
     alternatiefMaxVergoeding: 120,
     alternatiefPerSessie: 30
   };
@@ -85,7 +100,9 @@ test('calculates special situations, custom reimbursements, and non-contracted c
     orthodontieVergoeding: 1000,
     orthodontiePercentage: 75,
     zwangerschapVergoeding: 200,
+    zwangerschapPercentage: 100,
     wettelijkeBijdragenVergoeding: 100,
+    wettelijkeBijdragenPercentage: 100,
     nietGecontracteerdeBijbetaling: 125,
     extraVergoedingen: { 'extra-1': { maximum: 150, percentage: 50 } }
   };

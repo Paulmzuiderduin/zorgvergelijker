@@ -271,12 +271,18 @@ a { color: inherit; }
   .landing-steps article:last-child { border-bottom: 0; }
   .seasonal-notice { grid-template-columns: 1fr auto; }
   .seasonal-notice .section-kicker { grid-column: 1 / -1; }
-  .app-heading { padding: 1.3rem; }
-  .app-heading .brand-link { margin-bottom: 1.6rem; }
-  .app-heading h1 { font-size: 2.7rem; }
+  .app-heading { padding: 1rem; }
+  .app-heading .brand-link { margin-bottom: .65rem; }
+  .app-heading .eyebrow { display: none; }
+  .app-heading h1 { max-width: none; font-size: 1.8rem; }
+  .app-heading > p:last-child { font-size: .85rem; }
+  .app-summary { min-height: 0; padding: .85rem 1rem; }
+  .app-summary strong { margin-top: .3rem; font-size: 1.6rem; }
+  .app-summary small { margin-top: .25rem; }
   .app-toolbar .secondary-button { flex: 1; }
-  .workspace-tabs { grid-template-columns: 1fr; }
-  .workflow-tab { border-right: 0; border-bottom: 1px solid var(--line); }
+  .workspace-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .workflow-tab { padding: .65rem .3rem; gap: .3rem; flex-direction: column; }
+  .workflow-tab strong { font-size: .75rem; }
   .workflow-tab:last-child { border-bottom: 0; }
   .step-intro-with-action, .insurance-header { align-items: stretch; flex-direction: column; }
   .step-intro-with-action .primary-button { width: 100%; }

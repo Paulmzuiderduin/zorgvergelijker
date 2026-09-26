@@ -25,7 +25,7 @@ test('smoke: first-use flow, policy checks, and comparison work together', async
   await orthodontie.getByRole('spinbutton', { name: 'Verwachte kosten' }).fill('900');
   await page.getByRole('button', { name: 'Eigen zorgpost toevoegen' }).click();
   await page.getByLabel('Naam zorgpost').fill('Podotherapie');
-  await page.getByRole('spinbutton', { name: 'Verwachte kosten', exact: true }).fill('180');
+  await page.locator('.custom-cost-row').getByRole('spinbutton', { name: 'Verwachte kosten' }).fill('180');
 
   await page.getByRole('button', { name: 'Volgende' }).click();
   await page.getByRole('button', { name: 'Huidige polis toevoegen' }).first().click();
